@@ -1,0 +1,69 @@
+живое существо можно определить на какую-нибудь работу
+смена хода и A определено на изготовление еды и достаточно ресурсов для изготовления еды -> получаем на склад еду
+смена хода и на складе нету еды -> существо умирает
+A умирает -> not "A - живое существо"
+
+AState(live, curr) //A жив на текущем ходу
+AMakeFood(curr) //на текущем ходу определить на изготовление еды
+AState(live, curr) and AMakeFood(curr) -> MakingFood(A, curr) //A определен на изготовление еды на текущем ходу
+MakingFood(A, curr)
+
+FoodInStock(0, curr) // на складе еды нету на текущем ход
+
+FoodInStock(0, curr) -> AState(death, next) //мертв на следующем ходу
+AState(death, next)
+
+EnoughResForMake(food) // достаточно ресурсов для изготовления еды на текущем ходу
+FoodInStockOnMove(0, curr) and MakingFood(A, curr) and EnoughResForMake(food) -> FoodInStockOnMove(1, next)
+FoodInStockOnMove(1, next)
+
+Интерпретировать это можно так - посылаем существо делать еду. Между текущим и следующим ходом оно успевает изготовить еду, отправляет ее по почте на склад. Само идет на склад в поисках пропитания.
+food2 на складе нет
+Существо делает food1, после чего идет на склад и просит food2
+Существо умирает от истощения, поскольку food2 на складе отсутствует.
+food1 оказывается на складе.
+
+=====================================
+not (MakingFood(x, curr) and EnoughResForMake(food)) and FoodInStock(0, curr) -> State(x, death, next)
+
+not State(A, death, curr) //A жив на текущем ходу
+not State(B, death, curr)
+MakeFood(A, curr) //на текущем ходу определить на изготовление еды
+State(A, live, curr) and MakeFood(A, curr) -> MakingFood(A, curr) //A определен на изготовление еды на текущем ходу
+State(B, live, curr) and MakeFood(B, curr) -> MakingFood(B, curr)
+MakingFood(A, curr)
+not MakingFood(B, curr)
+
+FoodInStock(0, curr)
+EnoughResForMake(food)
+not (MakingFood(A, curr) and EnoughResForMake(food)) and FoodInStock(0, curr) -> State(A, death, next)
+not State(A, death, next)
+not (MakingFood(B, curr) and EnoughResForMake(food)) and FoodInStock(0, curr) -> State(B, death, next)
+State(B, death, next)
+
+not (not (MakingFood(A, curr) and EnoughResForMake(food)) and FoodInStock(0, curr)) and FoodInStockOnMove(0, curr) and MakingFood(A, curr) and EnoughResForMake(food) -> FoodInStockOnMove(1, next)
+not FoodInStockOnMove(1, next)
+
+======
+для изготовления какого-то вида продукта необходимо
+	место для изготовления
+	специально обученное существо
+	ресурсы
+при изготовлении какого-то типа продукта в результате может получиться несколько продуктов
+на некоторых местах изготовления можно изготовлять несколько продуктов одного и того же типа
+(*
+	type Place =
+		| Field
+	type PlaceProduction = { Name:string; CountWorker:int }
+	type Place = {  }
+	type Spec = Sower
+	type Resource =
+	type Product = { Place:PlaceProduction; Spec:Spec; Output:int; Resources:(Resource*int) list }
+
+*)
+
+между текущим и следующим ходом, существо назначенное на производство какого-то продукта изготовляет его и отправляет на склад.
+Из этого следует, что за время между двумя ходами, можно сделать как минимум один продукт
+После чего, существо идет на раздачу еды.
+Если еда для него есть -> возвращается в запас.
+Если еды для него нет -> умирает
