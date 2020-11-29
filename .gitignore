@@ -391,3 +391,5 @@ paket-files/
 
 /Output/
 /.ionide/
+
+/public/bundle.js

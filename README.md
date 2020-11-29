@@ -6,3 +6,19 @@
 Основная сложность пошаговых игр — сбалансировать ход.
 
 Проще плюнуть и сделать так называемый тик — простейшую единицу игрового времени, и ее использовать как время.
+
+## Build
+
+```batch
+dotnet tool restore
+paket install
+npm install
+
+cd src
+dotnet restore
+cd ../
+
+npm start
+```
+
+And open http://localhost:8080/ in your browser.
