@@ -17,7 +17,10 @@ type 'LabelName State =
         Stock: Core.Stock
         CurrentPage: Page
         ShowOnlyAvailableGoods: bool
-        Game: InteractiveFictionEngine.T
+        Game: 'LabelName InteractiveFictionEngine.T
+        GameState: 'LabelName InteractiveFictionEngine.State
+
+        SavedGameState: 'LabelName InteractiveFictionEngine.State
     }
 type CraftMsg =
     | Increment of Core.ItemName
@@ -28,6 +31,11 @@ type CraftMsg =
 type IfEngineMsg =
     | Next
     | Choice of int
+    | NextState
+    | Save
+    | Load
+    | NewGame
+
 type FoxEscapeMsg =
     | GameOver of bool
 type Msg =
@@ -35,6 +43,9 @@ type Msg =
     | CraftMsg of CraftMsg
     | IfEngineMsg of IfEngineMsg
     | FoxEscapeMsg of FoxEscapeMsg
+
+let scenario = Scenario.start()
+
 let init () =
     let st =
         {
@@ -45,8 +56,9 @@ let init () =
             CurrentPage = MenuPage
             ShowOnlyAvailableGoods = false
             Game =
-                let scenario = Scenario.start()
                 InteractiveFictionEngine.interp scenario.Scenario scenario.Init
+            GameState = scenario.Init
+            SavedGameState = scenario.Init
         }
     st, Cmd.none
 
@@ -67,25 +79,56 @@ let update (msg: Msg) (state: _ State) =
             { state with
                 ShowOnlyAvailableGoods = x }, Cmd.none
     | IfEngineMsg msg ->
+        let nextState x =
+            let rec nextState gameState = function
+                | InteractiveFictionEngine.NextState newGameState ->
+                    nextState newGameState (InteractiveFictionEngine.interp scenario.Scenario newGameState)
+                | game ->
+                    { state with
+                        GameState = gameState
+                        Game = game }
+            nextState state.GameState x
         match msg with
         | Next ->
             match state.Game with
             | InteractiveFictionEngine.Print(_, f) ->
-                { state with
-                    Game = f () }, Cmd.none
-            | InteractiveFictionEngine.End -> state, Cmd.none
-            | InteractiveFictionEngine.Choices(_, _,_)-> state, Cmd.none
-            | InteractiveFictionEngine.FoxEscapeGame _ -> state, Cmd.none
+                nextState (f ()), Cmd.none
+            | InteractiveFictionEngine.NextState x ->
+                failwith "nextNextState"
+            | InteractiveFictionEngine.End
+            | InteractiveFictionEngine.Choices _
+            | InteractiveFictionEngine.FoxEscapeGame _ ->
+                state, Cmd.none
         | Choice i ->
             match state.Game with
             | InteractiveFictionEngine.Choices(_, _, f)->
-                { state with
-                    Game = f i }, Cmd.none
+                nextState (f i), Cmd.none
             | InteractiveFictionEngine.Print(_, f) ->
-                { state with
-                    Game = f () }, Cmd.none
-            | InteractiveFictionEngine.End -> state, Cmd.none
+                nextState (f ()), Cmd.none
+            | InteractiveFictionEngine.NextState x ->
+                failwith "choiceNextState"
+            | InteractiveFictionEngine.End
             | InteractiveFictionEngine.FoxEscapeGame _ -> state, Cmd.none
+        | NextState ->
+            nextState state.Game, Cmd.none
+        | Save ->
+            let state =
+                { state with
+                    SavedGameState = state.GameState }
+            state, Cmd.none
+        | Load ->
+            let state =
+                let gameState = state.SavedGameState
+                { state with
+                    Game = InteractiveFictionEngine.interp scenario.Scenario gameState
+                    GameState = gameState }
+            state, Cmd.none
+        | NewGame ->
+            let state =
+                { state with
+                    Game = InteractiveFictionEngine.interp scenario.Scenario scenario.Init }
+            state, Cmd.none
+
     | ChangePage x ->
         { state with
             CurrentPage = x }, Cmd.none
@@ -98,10 +141,17 @@ let update (msg: Msg) (state: _ State) =
                     { state with
                         Game = f isWin }
                 state, Cmd.none
-            | _ -> state, Cmd.none
+            | InteractiveFictionEngine.NextState x ->
+                { state with
+                    Game = InteractiveFictionEngine.interp scenario.Scenario x }, Cmd.none
+            | InteractiveFictionEngine.Print _
+            | InteractiveFictionEngine.Choices _
+            | InteractiveFictionEngine.End _ ->
+                state, Cmd.none
 
 open Zanaptak.TypedCssClasses
 open Fable.Core
+open Fable.React
 open Feliz
 type Icon = CssClasses<"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css", Naming.PascalCase>
 type Bulma = CssClasses<"https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.1/css/bulma.min.css", Naming.PascalCase>
@@ -235,6 +285,14 @@ let menuPageRender (state:_ State) (dispatch: Msg -> unit) =
                 ]
                 prop.children gameRender
             ]
+        | InteractiveFictionEngine.NextState x ->
+            printfn "%A" x
+            Html.div [
+                prop.text "NextState"
+                prop.ref (fun e ->
+                    dispatch (IfEngineMsg NextState)
+                )
+            ]
 
     Column.column [
         Column.Width (Screen.All, Column.Is6)
@@ -253,63 +311,110 @@ let render (state:_ State) (dispatch: Msg -> unit) =
             prop.children [
                 Html.ul [
                     prop.children [
-                        Html.li [
-                            prop.className [
-                                if state.CurrentPage = MenuPage then
-                                    Bulma.IsActive
+                        // Html.li [
+                        //     prop.className [
+                        //         if state.CurrentPage = MenuPage then
+                        //             Bulma.IsActive
+                        //     ]
+                        //     prop.children [
+                        //         Html.a [
+                        //             prop.children [
+                        //                 Html.text "MenuPage"
+                        //             ]
+                        //             if state.CurrentPage <> MenuPage then
+                        //                 prop.onClick (fun _ -> dispatch (ChangePage MenuPage))
+                        //         ]
+                        //     ]
+                        // ]
+                        // Html.li [
+                        //     prop.className [
+                        //         if state.CurrentPage = RecipesPage then
+                        //             Bulma.IsActive
+                        //     ]
+                        //     prop.children [
+                        //         Html.a [
+                        //             prop.children [
+                        //                 Html.text "Recipes"
+                        //             ]
+                        //             if state.CurrentPage <> RecipesPage then
+                        //                 prop.onClick (fun _ -> dispatch (ChangePage RecipesPage))
+                        //         ]
+                        //     ]
+                        // ]
+                        // Html.li [
+                        //     prop.className [
+                        //         if state.CurrentPage = StockPage then
+                        //             Bulma.IsActive
+                        //     ]
+                        //     prop.children [
+                        //         Html.a [
+                        //             prop.children [
+                        //                 Html.text "Stock"
+                        //             ]
+                        //             if state.CurrentPage <> StockPage then
+                        //                 prop.onClick (fun _ -> dispatch (ChangePage StockPage))
+                        //         ]
+                        //     ]
+                        // ]
+                        // Html.li [
+                        //     prop.className [
+                        //         if state.CurrentPage = ProductionPage then
+                        //             Bulma.IsActive
+                        //     ]
+                        //     prop.children [
+                        //         Html.a [
+                        //             prop.children [
+                        //                 Html.text "Production"
+                        //             ]
+                        //             if state.CurrentPage <> ProductionPage then
+                        //                 prop.onClick (fun _ -> dispatch (ChangePage ProductionPage))
+                        //         ]
+                        //     ]
+                        // ]
+                        let makeIcon icon =
+                            Html.i [
+                                prop.className [
+                                    Icon.Fas
+                                    icon
+                                ]
+                                prop.style [
+                                    style.marginRight 4
+                                ]
                             ]
-                            prop.children [
-                                Html.a [
-                                    prop.children [
-                                        Html.text "MenuPage"
+
+                        Html.li [
+                            Html.a [
+                                prop.onClick (fun _ -> dispatch (IfEngineMsg NewGame))
+                                prop.children [
+                                    Html.div [
+                                        makeIcon Icon.FaFile
+
+                                        Html.text "New Game"
                                     ]
-                                    if state.CurrentPage <> MenuPage then
-                                        prop.onClick (fun _ -> dispatch (ChangePage MenuPage))
                                 ]
                             ]
                         ]
                         Html.li [
-                            prop.className [
-                                if state.CurrentPage = RecipesPage then
-                                    Bulma.IsActive
-                            ]
-                            prop.children [
-                                Html.a [
-                                    prop.children [
-                                        Html.text "Recipes"
+                            Html.a [
+                                prop.onClick (fun _ -> dispatch (IfEngineMsg Save))
+                                prop.children [
+                                    Html.div [
+                                        makeIcon Icon.FaSave
+
+                                        Html.text "Save"
                                     ]
-                                    if state.CurrentPage <> RecipesPage then
-                                        prop.onClick (fun _ -> dispatch (ChangePage RecipesPage))
                                 ]
                             ]
                         ]
                         Html.li [
-                            prop.className [
-                                if state.CurrentPage = StockPage then
-                                    Bulma.IsActive
-                            ]
-                            prop.children [
-                                Html.a [
-                                    prop.children [
-                                        Html.text "Stock"
+                            Html.a [
+                                prop.onClick (fun _ -> dispatch (IfEngineMsg Load))
+                                prop.children [
+                                    Html.div [
+                                        makeIcon Icon.FaUpload
+
+                                        Html.text "Load"
                                     ]
-                                    if state.CurrentPage <> StockPage then
-                                        prop.onClick (fun _ -> dispatch (ChangePage StockPage))
-                                ]
-                            ]
-                        ]
-                        Html.li [
-                            prop.className [
-                                if state.CurrentPage = ProductionPage then
-                                    Bulma.IsActive
-                            ]
-                            prop.children [
-                                Html.a [
-                                    prop.children [
-                                        Html.text "Production"
-                                    ]
-                                    if state.CurrentPage <> ProductionPage then
-                                        prop.onClick (fun _ -> dispatch (ChangePage ProductionPage))
                                 ]
                             ]
                         ]

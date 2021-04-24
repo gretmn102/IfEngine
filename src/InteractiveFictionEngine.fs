@@ -72,13 +72,14 @@ type 'LabelName State =
         Vars: Vars
     }
 
-type T =
-    | Print of Fable.React.ReactElement list * (unit -> T)
-    | Choices of Fable.React.ReactElement list * string list * (int -> T)
+type 'LabelName T =
+    | Print of Fable.React.ReactElement list * (unit -> 'LabelName T)
+    | Choices of Fable.React.ReactElement list * string list * (int -> 'LabelName T)
     | End
-    | FoxEscapeGame of (bool -> T)
+    | FoxEscapeGame of (bool -> 'LabelName T)
+    | NextState of 'LabelName State
 
-let rec interp (scenario:'LabelName Scenario) (state:'LabelName State) =
+let interp (scenario:'LabelName Scenario) (state:'LabelName State) =
     let next changeState stack =
         let rec next = function
             | x::xs ->
@@ -91,7 +92,7 @@ let rec interp (scenario:'LabelName Scenario) (state:'LabelName State) =
             | [] -> None
         match next stack with
         | Some state ->
-            interp scenario (changeState state)
+            NextState (changeState state)
         | None -> End
     match state.LabelState with
     | headStack::tailStack as stack ->
@@ -104,7 +105,7 @@ let rec interp (scenario:'LabelName Scenario) (state:'LabelName State) =
                     | [] -> []
                     | xs ->
                         [ ListZ.ofList xs ] }
-            |> interp scenario
+            |> NextState
         | Say x ->
             Print(x, fun () ->
                 next id stack
@@ -120,7 +121,7 @@ let rec interp (scenario:'LabelName Scenario) (state:'LabelName State) =
                     { state with
                         LabelState =
                             ListZ.ofList body::stack }
-                    |> interp scenario
+                    |> NextState
             )
         | If(pred, thenBody, elseBody) ->
             let f body =
@@ -130,7 +131,7 @@ let rec interp (scenario:'LabelName Scenario) (state:'LabelName State) =
                     { state with
                         LabelState =
                             ListZ.ofList body::stack }
-                    |> interp scenario
+                    |> NextState
             if pred state.Vars then
                 f thenBody
             else
@@ -144,7 +145,7 @@ let rec interp (scenario:'LabelName Scenario) (state:'LabelName State) =
                         { state with
                             LabelState =
                                 ListZ.ofList body::stack }
-                        |> interp scenario
+                        |> NextState
                 if isWin then
                     f winBody
                 else
