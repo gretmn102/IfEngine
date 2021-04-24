@@ -3,7 +3,12 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\paket-files\gretmn102\FoxEscape\src\Mainloop.fs" />
+    <Compile Include="..\paket-files\gretmn102\FoxEscape\src\FoxEscape.fs" />
+    <Compile Include="..\paket-files\gretmn102\FsharpMyExtension\FsharpMyExtension\FsharpMyExtension\Containers\LZ.fs" />
     <Compile Include="Either.fs" />
+    <Compile Include="InteractiveFictionEngine.fs" />
+    <Compile Include="Scenario.fs" />
     <Compile Include="Core.fs" />
     <Compile Include="App.fs" />
   </ItemGroup>

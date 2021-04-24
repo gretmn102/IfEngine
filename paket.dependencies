@@ -12,3 +12,9 @@ nuget Fable.SimpleHttp
 nuget Feliz
 nuget Thoth.Json
 nuget Zanaptak.TypedCssClasses
+
+nuget Fable.FontAwesome.Free
+nuget Fulma
+
+github gretmn102/FoxEscape:main
+github gretmn102/FsharpMyExtension

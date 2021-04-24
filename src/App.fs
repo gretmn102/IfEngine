@@ -10,19 +10,31 @@ type Page =
     | StockPage
     | RecipesPage
     | ProductionPage
-type State =
+
+type 'LabelName State =
     {
         Count: Either<string, int>
         Stock: Core.Stock
         CurrentPage: Page
         ShowOnlyAvailableGoods: bool
+        Game: InteractiveFictionEngine.T
     }
-type Msg =
+type CraftMsg =
     | Increment of Core.ItemName
     | Decrement of Core.ItemName
-    | ChangePage of Page
     | Make of Core.ItemName
     | ChangeShowOnlyAvailableGoods of bool
+
+type IfEngineMsg =
+    | Next
+    | Choice of int
+type FoxEscapeMsg =
+    | GameOver of bool
+type Msg =
+    | ChangePage of Page
+    | CraftMsg of CraftMsg
+    | IfEngineMsg of IfEngineMsg
+    | FoxEscapeMsg of FoxEscapeMsg
 let init () =
     let st =
         {
@@ -32,44 +44,230 @@ let init () =
                 |> Map.map (fun _ _ -> 0)
             CurrentPage = MenuPage
             ShowOnlyAvailableGoods = false
+            Game =
+                let scenario = Scenario.start()
+                InteractiveFictionEngine.interp scenario.Scenario scenario.Init
         }
     st, Cmd.none
 
-let update (msg: Msg) (state: State) =
+let update (msg: Msg) (state: _ State) =
     match msg with
-    | Increment itemName ->
-        { state with
-            Stock = state.Stock |> Core.Map.addOrMod itemName 1 ((+) 1) }, Cmd.none
-    | Decrement itemName ->
-        { state with
-            Stock = state.Stock |> Core.Map.addOrMod itemName 0 (fun i -> i - 1) }, Cmd.none
+    | CraftMsg msg ->
+        match msg with
+        | Increment itemName ->
+            { state with
+                Stock = state.Stock |> Core.Map.addOrMod itemName 1 ((+) 1) }, Cmd.none
+        | Decrement itemName ->
+            { state with
+                Stock = state.Stock |> Core.Map.addOrMod itemName 0 (fun i -> i - 1) }, Cmd.none
+        | Make itemName ->
+            { state with
+                Stock = Core.make state.Stock Core.recipes.[itemName] }, Cmd.none
+        | ChangeShowOnlyAvailableGoods x ->
+            { state with
+                ShowOnlyAvailableGoods = x }, Cmd.none
+    | IfEngineMsg msg ->
+        match msg with
+        | Next ->
+            match state.Game with
+            | InteractiveFictionEngine.Print(_, f) ->
+                { state with
+                    Game = f () }, Cmd.none
+            | InteractiveFictionEngine.End -> state, Cmd.none
+            | InteractiveFictionEngine.Choices(_, _,_)-> state, Cmd.none
+            | InteractiveFictionEngine.FoxEscapeGame _ -> state, Cmd.none
+        | Choice i ->
+            match state.Game with
+            | InteractiveFictionEngine.Choices(_, _, f)->
+                { state with
+                    Game = f i }, Cmd.none
+            | InteractiveFictionEngine.Print(_, f) ->
+                { state with
+                    Game = f () }, Cmd.none
+            | InteractiveFictionEngine.End -> state, Cmd.none
+            | InteractiveFictionEngine.FoxEscapeGame _ -> state, Cmd.none
     | ChangePage x ->
         { state with
             CurrentPage = x }, Cmd.none
-    | Make itemName ->
-        { state with
-            Stock = Core.make state.Stock Core.recipes.[itemName] }, Cmd.none
-    | ChangeShowOnlyAvailableGoods x ->
-        { state with
-            ShowOnlyAvailableGoods = x }, Cmd.none
+    | FoxEscapeMsg res ->
+        match res with
+        | GameOver isWin ->
+            match state.Game with
+            | InteractiveFictionEngine.FoxEscapeGame f ->
+                let state =
+                    { state with
+                        Game = f isWin }
+                state, Cmd.none
+            | _ -> state, Cmd.none
 
 open Zanaptak.TypedCssClasses
 open Fable.Core
-
+open Feliz
 type Icon = CssClasses<"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css", Naming.PascalCase>
 type Bulma = CssClasses<"https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.1/css/bulma.min.css", Naming.PascalCase>
+open Fable.FontAwesome
+open Fulma
+open Fable.React.Helpers
+
+let menuPageRender (state:_ State) (dispatch: Msg -> unit) =
+    let xs =
+        let print (xs:ReactElement list) =
+            Html.div [
+                prop.className Bulma.Content
+                prop.children xs
+            ]
+
+        match state.Game with
+        | InteractiveFictionEngine.Print(xs, _) ->
+            Html.div [
+                prop.children [
+                    print xs
+
+                    Html.div [
+                        prop.style [
+                            style.justifyContent.center
+                            style.display.flex
+                        ]
+                        prop.children [
+
+                            Html.button [
+                                prop.className [
+                                    Bulma.Button
+                                ]
+                                prop.onClick (fun _ -> dispatch (IfEngineMsg Next))
+
+                                prop.text "..."
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        | InteractiveFictionEngine.End ->
+            Html.div [
+                prop.style [
+                    style.justifyContent.center
+                    style.display.flex
+                ]
+                prop.text "Конец"
+            ]
+        | InteractiveFictionEngine.Choices(caption, choices, _) ->
+            let xs =
+                choices
+                |> List.mapi (fun i label ->
+                    Html.div [
+                        prop.style [
+                            style.justifyContent.center
+                            style.display.flex
+                        ]
+                        prop.children [
+                            Html.button [
+                                prop.className [
+                                    Bulma.Button
+                                ]
+                                prop.onClick (fun _ -> dispatch (IfEngineMsg (Choice i)))
+                                prop.text label
+                            ]
+                        ]
+                    ]
+                )
 
 
-let render (state: State) (dispatch: Msg -> unit) =
+            Html.div [
+                prop.children (print caption :: xs)
+            ]
+        | InteractiveFictionEngine.FoxEscapeGame _ ->
+            let gameRender =
+                Html.canvas [
+                    prop.style [
+                        // Feliz.style.border(1, borderStyle.solid, "grey")
+                    ]
+                    prop.tabIndex -1
+                    prop.ref (fun canvas ->
+                        if isNull canvas then ()
+                        else
+                            let canvas = canvas :?> Types.HTMLCanvasElement
+                            let updateSize () =
+                                match canvas.parentElement with
+                                | null -> ()
+                                | x ->
+                                    let w = x.offsetWidth // - 50.
+                                    canvas.width <- w
+                                    canvas.height <- w
+                                    FoxEscape.updateSize w w
+
+                                    FoxEscape.speedMult <- w * 0.20 / 540.
+                            updateSize ()
+
+                            window.onresize <- fun x ->
+                                updateSize ()
+
+                            let x =
+                                FoxEscape.start canvas (fun isWin ->
+                                    Mainloop.mainloop.stop () |> ignore
+                                    dispatch (FoxEscapeMsg (GameOver isWin))
+                                )
+                            FoxEscape.m_winMsg <-
+                                {|
+                                    Color = "grey"
+                                    Msg = "Сбежала!"
+                                |}
+                            FoxEscape.m_LoseMsg <-
+                                {|
+                                    Color = "pink"
+                                    Msg = "Кусь!"
+                                |}
+
+                            Mainloop.mainloop.setUpdate (fun delta -> x.Update delta) |> ignore
+                            Mainloop.mainloop.setDraw (fun _ -> x.Draw ()) |> ignore
+                            Mainloop.mainloop.setEnd (fun fps panic ->
+                                // TODO: fpsCounter.textContent <- sprintf "%A FPS" (round fps)
+                                if panic then
+                                    let discardedTime = round(Mainloop.mainloop.resetFrameDelta())
+                                    printfn "Main loop panicked, probably because the browser tab was put in the background. Discarding %A ms" discardedTime
+                            ) |> ignore
+                            Mainloop.mainloop.start () |> ignore
+                    )
+                ]
+            Html.div [
+                prop.style [
+                        style.justifyContent.center
+                        style.display.flex
+                ]
+                prop.children gameRender
+            ]
+
+    Column.column [
+        Column.Width (Screen.All, Column.Is6)
+        Column.Offset (Screen.All, Column.Is3)
+    ] [
+        Box.box' [] [xs]
+    ]
+
+let render (state:_ State) (dispatch: Msg -> unit) =
     let nav =
         Html.div [
             prop.className [
-                "tabs"
-                "is-centered"
+                Bulma.Tabs
+                Bulma.IsCentered
             ]
             prop.children [
                 Html.ul [
                     prop.children [
+                        Html.li [
+                            prop.className [
+                                if state.CurrentPage = MenuPage then
+                                    Bulma.IsActive
+                            ]
+                            prop.children [
+                                Html.a [
+                                    prop.children [
+                                        Html.text "MenuPage"
+                                    ]
+                                    if state.CurrentPage <> MenuPage then
+                                        prop.onClick (fun _ -> dispatch (ChangePage MenuPage))
+                                ]
+                            ]
+                        ]
                         Html.li [
                             prop.className [
                                 if state.CurrentPage = RecipesPage then
@@ -128,7 +326,7 @@ let render (state: State) (dispatch: Msg -> unit) =
             nav
             match state.CurrentPage with
             | MenuPage ->
-                Html.none
+                menuPageRender state dispatch
             | RecipesPage ->
                 let recipesRender () =
                     let recipeRender (recipe:Core.Recipe) =
@@ -258,7 +456,7 @@ let render (state: State) (dispatch: Msg -> unit) =
                                                                 ]
                                                             ]
                                                         ]
-                                                        prop.onClick (fun _ -> dispatch (Increment name))
+                                                        prop.onClick (fun _ -> dispatch (CraftMsg (Increment name)))
                                                     ]
                                                     |> toControl
                                                     Html.button [
@@ -281,7 +479,7 @@ let render (state: State) (dispatch: Msg -> unit) =
                                                                 ]
                                                             ]
                                                         ]
-                                                        prop.onClick (fun _ -> dispatch (Decrement name))
+                                                        prop.onClick (fun _ -> dispatch (CraftMsg (Decrement name)))
                                                     ]
                                                     |> toControl
                                                 ]
@@ -301,7 +499,7 @@ let render (state: State) (dispatch: Msg -> unit) =
                             prop.type'.checkbox
                             prop.isChecked state.ShowOnlyAvailableGoods
                             prop.onCheckedChange (fun x ->
-                                dispatch (ChangeShowOnlyAvailableGoods x)
+                                dispatch (CraftMsg (ChangeShowOnlyAvailableGoods x))
                             )
                         ]
                         Html.text " Show only available goods"
@@ -384,7 +582,7 @@ let render (state: State) (dispatch: Msg -> unit) =
                                                                 ]
                                                             ]
                                                         ]
-                                                        prop.onClick (fun _ -> dispatch (Make name))
+                                                        prop.onClick (fun _ -> dispatch (CraftMsg (Make name)))
                                                     ]
                                                     |> toControl
                                                     Html.button [
@@ -420,5 +618,7 @@ open Elmish.React
 
 Program.mkProgram init update render
 |> Program.withReactSynchronous "elmish-app"
+#if DEBUG
 |> Program.withConsoleTrace
+#endif
 |> Program.run
