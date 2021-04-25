@@ -13,7 +13,7 @@ type 'LabelName Stmt =
     | Menu of Fable.React.ReactElement list * (string * 'LabelName Stmt list) list
     | If of (Vars -> bool) * 'LabelName Stmt list * 'LabelName Stmt list
     | ChangeVars of (Vars -> Vars)
-    | StartFoxEscapeGame of 'LabelName Stmt list * 'LabelName Stmt list
+    | StartFoxEscapeGame of float * 'LabelName Stmt list * 'LabelName Stmt list option
 type 'LabelName Label = 'LabelName * Stmt<'LabelName> list
 let label (labelName:'LabelName) (stmts:Stmt<_> list) =
     labelName, stmts
@@ -76,7 +76,7 @@ type 'LabelName T =
     | Print of Fable.React.ReactElement list * (unit -> 'LabelName T)
     | Choices of Fable.React.ReactElement list * string list * (int -> 'LabelName T)
     | End
-    | FoxEscapeGame of (bool -> 'LabelName T)
+    | FoxEscapeGame of (float * (bool -> 'LabelName T))
     | NextState of 'LabelName State
 
 let interp (scenario:'LabelName Scenario) (state:'LabelName State) =
@@ -136,8 +136,8 @@ let interp (scenario:'LabelName Scenario) (state:'LabelName State) =
                 f thenBody
             else
                 f elseBody
-        | StartFoxEscapeGame(winBody, loseBody) ->
-            FoxEscapeGame(fun isWin ->
+        | StartFoxEscapeGame(speed, winBody, loseBody) ->
+            FoxEscapeGame(speed, fun isWin ->
                 let f body =
                     if List.isEmpty body then
                         next id stack
@@ -149,7 +149,9 @@ let interp (scenario:'LabelName Scenario) (state:'LabelName State) =
                 if isWin then
                     f winBody
                 else
-                    f loseBody
+                    match loseBody with
+                    | Some loseBody -> f loseBody
+                    | None -> NextState state
             )
         | ChangeVars f ->
             stack

@@ -136,7 +136,8 @@ let update (msg: Msg) (state: _ State) =
         match res with
         | GameOver isWin ->
             match state.Game with
-            | InteractiveFictionEngine.FoxEscapeGame f ->
+            | InteractiveFictionEngine.FoxEscapeGame(foxSpeed, f) ->
+                FoxEscape.foxSpeed <- foxSpeed
                 let state =
                     { state with
                         Game = f isWin }
