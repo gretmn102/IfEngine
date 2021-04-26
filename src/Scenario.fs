@@ -2,6 +2,7 @@ module Scenario
 open InteractiveFictionEngine
 open Feliz
 type LabelName =
+    | MainMenu
     | Prelude
     | Forest
     | Forest2
@@ -139,6 +140,49 @@ let hedgehogScenario =
 
 let scenario =
     [
+        label MainMenu [
+
+            menu [
+                Html.h1 [
+                    prop.style [
+                        style.justifyContent.center
+                        style.display.flex
+                    ]
+
+                    prop.text "Ведьмочка и кот"
+                ]
+                Html.div [ Html.text "Малюсенький интерактивный рассказ." ]
+                Html.div [
+                    prop.style [
+                        style.justifyContent.flexEnd
+                        style.display.flex
+                    ]
+                    prop.text "v1.0"
+                ]
+            ] [
+                choice "Начать" [ jump Prelude ]
+                choice "Мини игра" [
+                    menu [
+                        Html.text "По мере прохождения вы столкнетесь с игрой в догонялки. Если интересно, то в такое можно сыграть отдельно по "
+                        Html.a [
+                            prop.href "https://gretmn102.github.io/public/FoxEscape/index.html"
+                            prop.target "_blank"
+                            prop.text "этой ссылке"
+                        ]
+                        Html.text "."
+                    ] [
+                        choice "Назад" [ jump MainMenu ]
+                    ]
+                ]
+                choice "Авторов!" [
+                    menu [
+                        Html.text "Ну, кто мог сочинить такое безобразие? Конечно же, кот с ведьмочкой!"
+                    ] [
+                        choice "Назад" [ jump MainMenu ]
+                    ]
+                ]
+            ]
+        ]
         label Prelude [
             // jump FoxEscape
             // Сцена: неожиданная встреча
@@ -321,7 +365,7 @@ let scenario =
     ]
 
 open FsharpMyExtension.ListZipper
-let beginLoc = Prelude
+let beginLoc = MainMenu
 let start () =
     let scenario =
         // hedgehogScenario
