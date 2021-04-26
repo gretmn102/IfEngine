@@ -11,6 +11,21 @@ type Page =
     | RecipesPage
     | ProductionPage
 
+type Deferred<'t> =
+    | HasNotStartedYet
+    | InProgress
+    | Resolved of 't
+
+type Img = Result<Types.HTMLImageElement, unit>
+type ImgState =
+    {
+        InputImageSrc: string
+        ImageSrc: string
+
+        Img:Deferred<Img>
+        IsRounded: bool
+    }
+
 type 'LabelName State =
     {
         Count: Either<string, int>
@@ -21,6 +36,9 @@ type 'LabelName State =
         GameState: 'LabelName InteractiveFictionEngine.State
 
         SavedGameState: 'LabelName InteractiveFictionEngine.State
+
+        FoxImgState: ImgState
+        DuckImgState: ImgState
     }
 type CraftMsg =
     | Increment of Core.ItemName
@@ -38,6 +56,8 @@ type IfEngineMsg =
 
 type FoxEscapeMsg =
     | GameOver of bool
+    | UpdateFoxState of Img
+    | UpdateDuckState of Img
 type Msg =
     | ChangePage of Page
     | CraftMsg of CraftMsg
@@ -47,6 +67,14 @@ type Msg =
 let scenario = Scenario.start()
 
 let init () =
+    let imgStateEmpty =
+        {
+            InputImageSrc = ""
+            ImageSrc = ""
+            Img = HasNotStartedYet
+            IsRounded = true
+        }
+
     let st =
         {
             Count = Right 0
@@ -59,6 +87,15 @@ let init () =
                 InteractiveFictionEngine.interp scenario.Scenario scenario.Init
             GameState = scenario.Init
             SavedGameState = scenario.Init
+
+            FoxImgState =
+                { imgStateEmpty with
+                    ImageSrc = "https://thumbs.dreamstime.com/z/black-cat-icon-halloween-symbol-domestic-pet-black-cat-icon-halloween-symbol-domestic-pet-silhouette-animal-isolated-flat-158661525.jpg"
+                }
+            DuckImgState =
+                { imgStateEmpty with
+                    ImageSrc = "https://thumbs.dreamstime.com/z/magic-witch-hat-surrounded-stars-vector-helloween-symbol-evil-costume-wand-logo-magical-cloting-wizard-logo-magic-witch-hat-152581714.jpg"
+                }
         }
     st, Cmd.none
 
@@ -149,6 +186,28 @@ let update (msg: Msg) (state: _ State) =
             | InteractiveFictionEngine.Choices _
             | InteractiveFictionEngine.End _ ->
                 state, Cmd.none
+        | UpdateFoxState img ->
+            let state =
+                { state with
+                    FoxImgState =
+                        { state.FoxImgState with
+                            Img = Resolved img } }
+            match img with
+            | Ok img ->
+                FoxEscape.updateFoxSprite state.FoxImgState.IsRounded img
+            | _ -> ()
+            state, Cmd.none
+        | UpdateDuckState img ->
+            let state =
+                { state with
+                    DuckImgState =
+                        { state.DuckImgState with
+                            Img = Resolved img } }
+            match img with
+            | Ok img ->
+                FoxEscape.updateDuckSprite state.DuckImgState.IsRounded img
+            | _ -> ()
+            state, Cmd.none
 
 open Zanaptak.TypedCssClasses
 open Fable.Core
@@ -227,6 +286,28 @@ let menuPageRender (state:_ State) (dispatch: Msg -> unit) =
                 prop.children (print caption :: xs)
             ]
         | InteractiveFictionEngine.FoxEscapeGame _ ->
+            do
+                let f (state:ImgState) update =
+                    match state.Img with
+                    | HasNotStartedYet
+                    | Resolved (Error _) ->
+                        if not <| System.String.IsNullOrEmpty state.ImageSrc then
+                            let img = document.createElement "img" :?> Types.HTMLImageElement
+
+                            img.src <- state.ImageSrc
+
+                            img.onload <- fun e ->
+                                if isNull e then ()
+                                else
+                                    let imgElement = e.currentTarget :?> Types.HTMLImageElement
+                                    dispatch (update (Ok imgElement))
+
+                            img.onerror <- fun e ->
+                                dispatch (update (Error ()))
+                    | _ -> ()
+                f state.FoxImgState (UpdateFoxState >> FoxEscapeMsg)
+                f state.DuckImgState (UpdateDuckState >> FoxEscapeMsg)
+
             let gameRender =
                 Html.canvas [
                     prop.style [
@@ -287,7 +368,6 @@ let menuPageRender (state:_ State) (dispatch: Msg -> unit) =
                 prop.children gameRender
             ]
         | InteractiveFictionEngine.NextState x ->
-            printfn "%A" x
             Html.div [
                 prop.text "NextState"
                 prop.ref (fun e ->
