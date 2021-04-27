@@ -7,12 +7,25 @@ type LabelName =
     | Forest
     | Forest2
     | FoxEscape
+    | FoxEscape2
     | Еpilogue
 let mushroom = "mushroom"
 let getmushroom (x:Map<_,_>) =
     match x.[mushroom] with
     | Bool x -> x
     | _ -> failwith ""
+let counter = "counter"
+let getCounter (x:Map<_,_>) =
+    match x.[counter] with
+    | Num x -> x
+    | _ -> failwith ""
+let counterSet fn =
+    ChangeVars (fun vars ->
+        match Map.tryFind counter vars with
+        | Some (Num x) ->
+            Map.add counter (Num (fn x)) vars
+        | _ -> Map.add counter (Num (fn 0)) vars
+    )
 
 let princessInTowerScenario =
     [
@@ -157,7 +170,7 @@ let scenario =
                         style.justifyContent.flexEnd
                         style.display.flex
                     ]
-                    prop.text "v1.0"
+                    prop.text "v1.01"
                 ]
             ] [
                 choice "Начать" [ jump Prelude ]
@@ -334,16 +347,41 @@ let scenario =
             jump FoxEscape
         ]
 
+        let startGame winBody loseBody = StartFoxEscapeGame(3.5, winBody, loseBody)
         label FoxEscape [
-            let startGame winBody loseBody = StartFoxEscapeGame(3.8, winBody, loseBody)
             startGame [
                 jump Еpilogue
             ] (Some [
                 say "Ну уж нет, нельзя давать этим котам побеждать — надо попробовать еще раз!"
+                counterSet (fun _ -> 0)
+                jump FoxEscape2
+            ])
+        ]
+        label FoxEscape2 [
+            if' (fun vars -> getCounter vars < 3) [
                 startGame [
                     jump Еpilogue
-                ] None
-            ])
+                ] (Some [
+                    counterSet ((+) 1)
+                    jump FoxEscape2
+                ])
+            ] [
+                menu [
+                    Html.text "Что ж, если не получается, ничего страшного. Должно быть, кот слишком сильно хочет добиться своего, потому так быстро бегает. Его можно победить, честное мяу, но если не хватает сил, можно просто пропустить."
+                ] [
+                    choice "Попробовать еще раз!" [
+                        startGame [
+                            jump Еpilogue
+                        ] (Some [
+                            counterSet (fun _ -> 0)
+                            jump FoxEscape2
+                        ])
+                    ]
+                    choice "Пропустить" [
+                        jump Еpilogue
+                    ]
+                ]
+            ]
         ]
 
         label Еpilogue [

@@ -5,6 +5,7 @@ open Feliz
 type Var =
     | String of string
     | Bool of bool
+    | Num of int
 type Vars = Map<string, Var>
 
 type 'LabelName Stmt =
@@ -13,7 +14,7 @@ type 'LabelName Stmt =
     | Menu of Fable.React.ReactElement list * (string * 'LabelName Stmt list) list
     | If of (Vars -> bool) * 'LabelName Stmt list * 'LabelName Stmt list
     | ChangeVars of (Vars -> Vars)
-    | StartFoxEscapeGame of float * 'LabelName Stmt list * 'LabelName Stmt list option
+    | StartFoxEscapeGame of foxSpeed:float * 'LabelName Stmt list * 'LabelName Stmt list option
 type 'LabelName Label = 'LabelName * Stmt<'LabelName> list
 let label (labelName:'LabelName) (stmts:Stmt<_> list) =
     labelName, stmts

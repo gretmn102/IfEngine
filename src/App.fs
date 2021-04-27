@@ -285,7 +285,7 @@ let menuPageRender (state:_ State) (dispatch: Msg -> unit) =
             Html.div [
                 prop.children (print caption :: xs)
             ]
-        | InteractiveFictionEngine.FoxEscapeGame _ ->
+        | InteractiveFictionEngine.FoxEscapeGame(foxSpeed, _) ->
             do
                 let f (state:ImgState) update =
                     match state.Img with
@@ -333,6 +333,7 @@ let menuPageRender (state:_ State) (dispatch: Msg -> unit) =
                             window.onresize <- fun x ->
                                 updateSize ()
 
+                            FoxEscape.foxSpeed <- foxSpeed
                             let x =
                                 FoxEscape.start canvas (fun isWin ->
                                     Mainloop.mainloop.stop () |> ignore
