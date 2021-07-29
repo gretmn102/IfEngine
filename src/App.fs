@@ -3,7 +3,7 @@ module App
 open Elmish
 open Feliz
 open Browser
-open Either
+open FsharpMyExtension.Either
 
 type Page =
     | MenuPage

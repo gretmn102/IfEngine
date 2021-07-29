@@ -1,5 +1,5 @@
 module Core
-open Either
+open FsharpMyExtension.Either
 
 type ItemName = string
 type Ingredient = ItemName * int
@@ -246,6 +246,6 @@ let recipes =
          { ItemName = "электрическая штуковина"
            OutputCount = 1
            Ingredients = [("золото", 2); ("каменный блок", 1)] })
-        
+
     ] |> Map.ofList
     : Recipes
