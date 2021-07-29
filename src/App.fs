@@ -213,11 +213,11 @@ open Zanaptak.TypedCssClasses
 open Fable.Core
 open Fable.React
 open Feliz
-type Icon = CssClasses<"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css", Naming.PascalCase>
 type Bulma = CssClasses<"https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.1/css/bulma.min.css", Naming.PascalCase>
 open Fable.FontAwesome
 open Fulma
 open Fable.React.Helpers
+open Fable.React.Props
 
 let menuPageRender (state:_ State) (dispatch: Msg -> unit) =
     let xs =
@@ -453,24 +453,14 @@ let render (state:_ State) (dispatch: Msg -> unit) =
                         //         ]
                         //     ]
                         // ]
-                        let makeIcon icon =
-                            Html.i [
-                                prop.className [
-                                    Icon.Fas
-                                    icon
-                                ]
-                                prop.style [
-                                    style.marginRight 4
-                                ]
-                            ]
 
                         Html.li [
                             Html.a [
                                 prop.onClick (fun _ -> dispatch (IfEngineMsg NewGame))
                                 prop.children [
                                     Html.div [
-                                        makeIcon Icon.FaFile
-
+                                        Fa.i [ Fa.Solid.File ] []
+                                        span [] [ str " " ]
                                         Html.text "New Game"
                                     ]
                                 ]
@@ -481,8 +471,8 @@ let render (state:_ State) (dispatch: Msg -> unit) =
                                 prop.onClick (fun _ -> dispatch (IfEngineMsg Save))
                                 prop.children [
                                     Html.div [
-                                        makeIcon Icon.FaSave
-
+                                        Fa.i [ Fa.Solid.Save ] []
+                                        span [] [ str " " ]
                                         Html.text "Save"
                                     ]
                                 ]
@@ -493,8 +483,8 @@ let render (state:_ State) (dispatch: Msg -> unit) =
                                 prop.onClick (fun _ -> dispatch (IfEngineMsg Load))
                                 prop.children [
                                     Html.div [
-                                        makeIcon Icon.FaUpload
-
+                                        Fa.i [ Fa.Solid.Upload ] []
+                                        span [] [ str " " ]
                                         Html.text "Load"
                                     ]
                                 ]
@@ -532,10 +522,7 @@ let render (state:_ State) (dispatch: Msg -> unit) =
                                         ]
                                         Html.span " "
                                         Html.span [
-                                            prop.className [
-                                                Icon.Fa
-                                                Icon.FaArrowRight
-                                            ]
+                                            Fa.i [ Fa.Solid.ArrowRight ] []
                                         ]
                                         Html.span " "
                                         Html.span [
@@ -636,12 +623,7 @@ let render (state:_ State) (dispatch: Msg -> unit) =
                                                             Bulma.Button
                                                         ]
                                                         prop.children [
-                                                            Html.i [
-                                                                prop.className [
-                                                                    Icon.Fa
-                                                                    Icon.FaCaretUp
-                                                                ]
-                                                            ]
+                                                            Fa.i [ Fa.Solid.CaretUp ] []
                                                         ]
                                                         prop.onClick (fun _ -> dispatch (CraftMsg (Increment name)))
                                                     ]
@@ -659,12 +641,7 @@ let render (state:_ State) (dispatch: Msg -> unit) =
                                                             Bulma.Button
                                                         ]
                                                         prop.children [
-                                                            Html.i [
-                                                                prop.className [
-                                                                    Icon.Fa
-                                                                    Icon.FaCaretDown
-                                                                ]
-                                                            ]
+                                                            Fa.i [ Fa.Solid.CaretUp ] []
                                                         ]
                                                         prop.onClick (fun _ -> dispatch (CraftMsg (Decrement name)))
                                                     ]
@@ -762,12 +739,7 @@ let render (state:_ State) (dispatch: Msg -> unit) =
                                                             Bulma.Button
                                                         ]
                                                         prop.children [
-                                                            Html.i [
-                                                                prop.className [
-                                                                    Icon.Fa
-                                                                    Icon.FaCheck
-                                                                ]
-                                                            ]
+                                                            Fa.i [ Fa.Solid.Check ] []
                                                         ]
                                                         prop.onClick (fun _ -> dispatch (CraftMsg (Make name)))
                                                     ]
