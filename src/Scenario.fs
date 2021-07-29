@@ -1,5 +1,5 @@
 module Scenario
-open InteractiveFictionEngine
+open IfEngine.Core
 open Feliz
 type LabelName =
     | MainMenu
@@ -27,7 +27,7 @@ let counterSet fn =
         | _ -> Map.add counter (Num (fn 0)) vars
     )
 
-let princessInTowerScenario =
+let princessInTowerScenario : list<Label<LabelName,obj>> =
     [
         label Prelude [
             say "Король отдаст полцарства тому, кто спасет принцессу из башни дракона."
@@ -55,7 +55,7 @@ let princessInTowerScenario =
         ]
     ]
 
-let someScenario =
+let someScenario : list<Label<LabelName,obj>> =
     [
         label Prelude [
             say "Валера каким-то чудом устроился на стажировку в крупной компании — звезды сошлись, не иначе."
@@ -82,7 +82,7 @@ let someScenario =
         ]
     ]
 
-let hedgehogScenario =
+let hedgehogScenario : list<Label<LabelName,obj>> =
     [
         label Prelude [
             jump Forest
@@ -150,6 +150,9 @@ let hedgehogScenario =
             say "конец"
         ]
     ]
+
+type Addon =
+    | StartFoxEscapeGame of speed:float * Stmt<LabelName, Addon> list * Stmt<LabelName, Addon> list option
 
 let scenario =
     [
@@ -347,7 +350,7 @@ let scenario =
             jump FoxEscape
         ]
 
-        let startGame winBody loseBody = StartFoxEscapeGame(3.5, winBody, loseBody)
+        let startGame winBody loseBody = Addon(StartFoxEscapeGame(3.5, winBody, loseBody))
         label FoxEscape [
             startGame [
                 jump Еpilogue
@@ -410,7 +413,7 @@ let start () =
         scenario
         |> List.map (fun (labelName, body) -> labelName, (labelName, body))
         |> Map.ofList
-        : _ Scenario
+        : Scenario<_,_>
     let init =
         {
             LabelState =
@@ -421,3 +424,27 @@ let start () =
         Scenario = scenario
         Init = init
     |}
+let interp gameState =
+    let x = start ()
+    gameState
+    |> interp
+        (fun next state isWin addon ->
+            match addon with
+            | StartFoxEscapeGame(speed, winBody, loseBody) ->
+                let f body =
+                    let stack = state.LabelState
+                    if List.isEmpty body then
+                        next id stack
+                    else
+                        { state with
+                            LabelState =
+                                ListZ.ofList body::stack }
+                        |> NextState
+                if isWin then
+                    f winBody
+                else
+                    match loseBody with
+                    | Some loseBody -> f loseBody
+                    | None -> NextState state
+        )
+        x.Scenario

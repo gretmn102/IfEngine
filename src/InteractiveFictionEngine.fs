@@ -1,4 +1,4 @@
-module InteractiveFictionEngine
+module IfEngine.Core
 
 open Feliz
 
@@ -8,17 +8,18 @@ type Var =
     | Num of int
 type Vars = Map<string, Var>
 
-type 'LabelName Stmt =
+type Stmt<'LabelName, 'Addon> =
     | Say of Fable.React.ReactElement list
     | Jump of 'LabelName
-    | Menu of Fable.React.ReactElement list * (string * 'LabelName Stmt list) list
-    | If of (Vars -> bool) * 'LabelName Stmt list * 'LabelName Stmt list
+    | Menu of Fable.React.ReactElement list * (string * Stmt<'LabelName, 'Addon> list) list
+    | If of (Vars -> bool) * Stmt<'LabelName, 'Addon> list * Stmt<'LabelName, 'Addon> list
     | ChangeVars of (Vars -> Vars)
-    | StartFoxEscapeGame of foxSpeed:float * 'LabelName Stmt list * 'LabelName Stmt list option
-type 'LabelName Label = 'LabelName * Stmt<'LabelName> list
-let label (labelName:'LabelName) (stmts:Stmt<_> list) =
+    | Addon of 'Addon
+
+type Label<'LabelName, 'Addon> = 'LabelName * Stmt<'LabelName, 'Addon> list
+let label (labelName:'LabelName) (stmts:Stmt<_, _> list) =
     labelName, stmts
-    : _ Label
+    : Label<_,_>
 
 let divCenter (xs:seq<Fable.React.ReactElement>) =
     Html.div [
@@ -57,30 +58,30 @@ let says (xs:string list) =
 let jump (labelName:'LabelName) =
     Jump labelName
 
-let choice (caption:string) (body:'LabelName Stmt list) = caption, body
+let choice (caption:string) (body:Stmt<'LabelName, 'Addon> list) = caption, body
 let menu caption xs = Menu(caption, xs)
 let if' pred thenBody elseBody =
     If(pred, thenBody, elseBody)
-type 'LabelName Scenario when 'LabelName : comparison =
-    Map<'LabelName, Label<'LabelName>>
+type Scenario<'LabelName, 'Addon> when 'LabelName : comparison =
+    Map<'LabelName, Label<'LabelName, 'Addon>>
 
 
 open FsharpMyExtension.ListZipper
 
-type 'LabelName State =
+type State<'LabelName, 'Addon> =
     {
-        LabelState: ListZ<'LabelName Stmt> list
+        LabelState: ListZ<Stmt<'LabelName, 'Addon>> list
         Vars: Vars
     }
 
-type 'LabelName T =
-    | Print of Fable.React.ReactElement list * (unit -> 'LabelName T)
-    | Choices of Fable.React.ReactElement list * string list * (int -> 'LabelName T)
+type T<'LabelName, 'Addon, 'Arg> =
+    | Print of Fable.React.ReactElement list * (unit -> T<'LabelName, 'Addon, 'Arg>)
+    | Choices of Fable.React.ReactElement list * string list * (int -> T<'LabelName, 'Addon, 'Arg>)
     | End
-    | FoxEscapeGame of (float * (bool -> 'LabelName T))
-    | NextState of 'LabelName State
+    | AddonAct of 'Addon * ('Arg -> T<'LabelName, 'Addon, 'Arg>)
+    | NextState of State<'LabelName, 'Addon>
 
-let interp (scenario:'LabelName Scenario) (state:'LabelName State) =
+let interp addon (scenario: Scenario<'LabelName,'Addon>) (state:State<'LabelName, 'Addon>) =
     let next changeState stack =
         let rec next = function
             | x::xs ->
@@ -137,22 +138,9 @@ let interp (scenario:'LabelName Scenario) (state:'LabelName State) =
                 f thenBody
             else
                 f elseBody
-        | StartFoxEscapeGame(speed, winBody, loseBody) ->
-            FoxEscapeGame(speed, fun isWin ->
-                let f body =
-                    if List.isEmpty body then
-                        next id stack
-                    else
-                        { state with
-                            LabelState =
-                                ListZ.ofList body::stack }
-                        |> NextState
-                if isWin then
-                    f winBody
-                else
-                    match loseBody with
-                    | Some loseBody -> f loseBody
-                    | None -> NextState state
+        | Addon addonArg ->
+            AddonAct(addonArg, fun res ->
+                addon next state res addonArg
             )
         | ChangeVars f ->
             stack

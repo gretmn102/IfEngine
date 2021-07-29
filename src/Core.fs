@@ -1,4 +1,4 @@
-module Core
+module Craft.Core
 open FsharpMyExtension.Either
 
 type ItemName = string

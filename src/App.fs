@@ -1,15 +1,7 @@
 module App
 
 open Elmish
-open Feliz
 open Browser
-open FsharpMyExtension.Either
-
-type Page =
-    | MenuPage
-    | StockPage
-    | RecipesPage
-    | ProductionPage
 
 type Deferred<'t> =
     | HasNotStartedYet
@@ -26,42 +18,24 @@ type ImgState =
         IsRounded: bool
     }
 
-type 'LabelName State =
+type State =
     {
-        Count: Either<string, int>
-        Stock: Core.Stock
-        CurrentPage: Page
-        ShowOnlyAvailableGoods: bool
-        Game: 'LabelName InteractiveFictionEngine.T
-        GameState: 'LabelName InteractiveFictionEngine.State
+        CraftState: Craft.Index.State
 
-        SavedGameState: 'LabelName InteractiveFictionEngine.State
+        IfEngineState: IfEngine.Index.State<Scenario.LabelName,Scenario.Addon,bool>
 
         FoxImgState: ImgState
         DuckImgState: ImgState
     }
-type CraftMsg =
-    | Increment of Core.ItemName
-    | Decrement of Core.ItemName
-    | Make of Core.ItemName
-    | ChangeShowOnlyAvailableGoods of bool
-
-type IfEngineMsg =
-    | Next
-    | Choice of int
-    | NextState
-    | Save
-    | Load
-    | NewGame
 
 type FoxEscapeMsg =
     | GameOver of bool
     | UpdateFoxState of Img
     | UpdateDuckState of Img
+
 type Msg =
-    | ChangePage of Page
-    | CraftMsg of CraftMsg
-    | IfEngineMsg of IfEngineMsg
+    | CraftMsg of Craft.Index.Msg
+    | IfEngineMsg of IfEngine.Index.Msg
     | FoxEscapeMsg of FoxEscapeMsg
 
 let scenario = Scenario.start()
@@ -77,16 +51,14 @@ let init () =
 
     let st =
         {
-            Count = Right 0
-            Stock =
-                Core.recipes
-                |> Map.map (fun _ _ -> 0)
-            CurrentPage = MenuPage
-            ShowOnlyAvailableGoods = false
-            Game =
-                InteractiveFictionEngine.interp scenario.Scenario scenario.Init
-            GameState = scenario.Init
-            SavedGameState = scenario.Init
+            CraftState = Craft.Index.init()
+            IfEngineState =
+                {
+                    IfEngine.Index.Game =
+                        Scenario.interp scenario.Init
+                    IfEngine.Index.GameState = scenario.Init
+                    IfEngine.Index.SavedGameState = scenario.Init
+                }
 
             FoxImgState =
                 { imgStateEmpty with
@@ -99,92 +71,45 @@ let init () =
         }
     st, Cmd.none
 
-let update (msg: Msg) (state: _ State) =
+let update (msg: Msg) (state: State) =
     match msg with
-    | CraftMsg msg ->
-        match msg with
-        | Increment itemName ->
-            { state with
-                Stock = state.Stock |> Core.Map.addOrMod itemName 1 ((+) 1) }, Cmd.none
-        | Decrement itemName ->
-            { state with
-                Stock = state.Stock |> Core.Map.addOrMod itemName 0 (fun i -> i - 1) }, Cmd.none
-        | Make itemName ->
-            { state with
-                Stock = Core.make state.Stock Core.recipes.[itemName] }, Cmd.none
-        | ChangeShowOnlyAvailableGoods x ->
-            { state with
-                ShowOnlyAvailableGoods = x }, Cmd.none
     | IfEngineMsg msg ->
-        let nextState x =
-            let rec nextState gameState = function
-                | InteractiveFictionEngine.NextState newGameState ->
-                    nextState newGameState (InteractiveFictionEngine.interp scenario.Scenario newGameState)
-                | game ->
-                    { state with
-                        GameState = gameState
-                        Game = game }
-            nextState state.GameState x
-        match msg with
-        | Next ->
-            match state.Game with
-            | InteractiveFictionEngine.Print(_, f) ->
-                nextState (f ()), Cmd.none
-            | InteractiveFictionEngine.NextState x ->
-                failwith "nextNextState"
-            | InteractiveFictionEngine.End
-            | InteractiveFictionEngine.Choices _
-            | InteractiveFictionEngine.FoxEscapeGame _ ->
-                state, Cmd.none
-        | Choice i ->
-            match state.Game with
-            | InteractiveFictionEngine.Choices(_, _, f)->
-                nextState (f i), Cmd.none
-            | InteractiveFictionEngine.Print(_, f) ->
-                nextState (f ()), Cmd.none
-            | InteractiveFictionEngine.NextState x ->
-                failwith "choiceNextState"
-            | InteractiveFictionEngine.End
-            | InteractiveFictionEngine.FoxEscapeGame _ -> state, Cmd.none
-        | NextState ->
-            nextState state.Game, Cmd.none
-        | Save ->
-            let state =
-                { state with
-                    SavedGameState = state.GameState }
-            state, Cmd.none
-        | Load ->
-            let state =
-                let gameState = state.SavedGameState
-                { state with
-                    Game = InteractiveFictionEngine.interp scenario.Scenario gameState
-                    GameState = gameState }
-            state, Cmd.none
-        | NewGame ->
-            let state =
-                { state with
-                    Game = InteractiveFictionEngine.interp scenario.Scenario scenario.Init }
-            state, Cmd.none
+        let gameState, cmd =
+            IfEngine.Index.update Scenario.interp scenario.Init msg state.IfEngineState
+        let state =
+            { state with
+                IfEngineState = gameState
+            }
+        state, cmd |> Cmd.map IfEngineMsg
 
-    | ChangePage x ->
-        { state with
-            CurrentPage = x }, Cmd.none
     | FoxEscapeMsg res ->
         match res with
         | GameOver isWin ->
-            match state.Game with
-            | InteractiveFictionEngine.FoxEscapeGame(foxSpeed, f) ->
-                FoxEscape.foxSpeed <- foxSpeed
+            match state.IfEngineState.Game with
+            | IfEngine.Core.AddonAct(x, f) ->
+                match x with
+                | Scenario.StartFoxEscapeGame(foxSpeed, winBody, loseBody) ->
+                    FoxEscape.foxSpeed <- foxSpeed
+                    if isWin then
+                        FoxEscape.restart()
+                    let state =
+                        { state with
+                            IfEngineState =
+                                { state.IfEngineState with
+                                    Game = f isWin }
+                        }
+                    state, Cmd.none
+            | IfEngine.Core.NextState x ->
                 let state =
                     { state with
-                        Game = f isWin }
+                        IfEngineState =
+                            { state.IfEngineState with
+                                Game = Scenario.interp x }
+                    }
                 state, Cmd.none
-            | InteractiveFictionEngine.NextState x ->
-                { state with
-                    Game = InteractiveFictionEngine.interp scenario.Scenario x }, Cmd.none
-            | InteractiveFictionEngine.Print _
-            | InteractiveFictionEngine.Choices _
-            | InteractiveFictionEngine.End _ ->
+            | IfEngine.Core.Print _
+            | IfEngine.Core.Choices _
+            | IfEngine.Core.End _ ->
                 state, Cmd.none
         | UpdateFoxState img ->
             let state =
@@ -209,83 +134,35 @@ let update (msg: Msg) (state: _ State) =
             | _ -> ()
             state, Cmd.none
 
+    | CraftMsg msg ->
+        let craftState, cmd =
+            Craft.Index.update msg state.CraftState
+        let state =
+            { state with
+                CraftState = craftState
+            }
+        state, cmd |> Cmd.map CraftMsg
+
 open Zanaptak.TypedCssClasses
-open Fable.Core
-open Fable.React
-open Feliz
 type Bulma = CssClasses<"https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.1/css/bulma.min.css", Naming.PascalCase>
-open Fable.FontAwesome
-open Fulma
-open Fable.React.Helpers
+
+open Fable.React
 open Fable.React.Props
 
-let menuPageRender (state:_ State) (dispatch: Msg -> unit) =
-    let xs =
-        let print (xs:ReactElement list) =
-            Html.div [
-                prop.className Bulma.Content
-                prop.children xs
-            ]
+open Fable.FontAwesome
+open Fulma
 
-        match state.Game with
-        | InteractiveFictionEngine.Print(xs, _) ->
-            Html.div [
-                prop.children [
-                    print xs
+open Feliz
 
-                    Html.div [
-                        prop.style [
-                            style.justifyContent.center
-                            style.display.flex
-                        ]
-                        prop.children [
+let view (state:State) (dispatch: Msg -> unit) =
+    // Craft.Index.view state.CraftState (CraftMsg >> dispatch)
 
-                            Html.button [
-                                prop.className [
-                                    Bulma.Button
-                                ]
-                                prop.onClick (fun _ -> dispatch (IfEngineMsg Next))
-
-                                prop.text "..."
-                            ]
-                        ]
-                    ]
-                ]
-            ]
-        | InteractiveFictionEngine.End ->
-            Html.div [
-                prop.style [
-                    style.justifyContent.center
-                    style.display.flex
-                ]
-                prop.text "Конец"
-            ]
-        | InteractiveFictionEngine.Choices(caption, choices, _) ->
-            let xs =
-                choices
-                |> List.mapi (fun i label ->
-                    Html.div [
-                        prop.style [
-                            style.justifyContent.center
-                            style.display.flex
-                        ]
-                        prop.children [
-                            Html.button [
-                                prop.className [
-                                    Bulma.Button
-                                ]
-                                prop.onClick (fun _ -> dispatch (IfEngineMsg (Choice i)))
-                                prop.text label
-                            ]
-                        ]
-                    ]
-                )
-
-
-            Html.div [
-                prop.children (print caption :: xs)
-            ]
-        | InteractiveFictionEngine.FoxEscapeGame(foxSpeed, _) ->
+    IfEngine.Index.view
+        (fun (x:Scenario.Addon) state2 dispatch2 ->
+            let foxSpeed =
+                match x with
+                | Scenario.Addon.StartFoxEscapeGame(foxSpeed, _, _) ->
+                    foxSpeed
             do
                 let f (state:ImgState) update =
                     match state.Img with
@@ -368,414 +245,13 @@ let menuPageRender (state:_ State) (dispatch: Msg -> unit) =
                 ]
                 prop.children gameRender
             ]
-        | InteractiveFictionEngine.NextState x ->
-            Html.div [
-                prop.text "NextState"
-                prop.ref (fun e ->
-                    dispatch (IfEngineMsg NextState)
-                )
-            ]
+        )
+        state.IfEngineState
+        (IfEngineMsg >> dispatch)
 
-    Column.column [
-        Column.Width (Screen.All, Column.Is6)
-        Column.Offset (Screen.All, Column.Is3)
-    ] [
-        Box.box' [] [xs]
-    ]
-
-let render (state:_ State) (dispatch: Msg -> unit) =
-    let nav =
-        Html.div [
-            prop.className [
-                Bulma.Tabs
-                Bulma.IsCentered
-            ]
-            prop.children [
-                Html.ul [
-                    prop.children [
-                        // Html.li [
-                        //     prop.className [
-                        //         if state.CurrentPage = MenuPage then
-                        //             Bulma.IsActive
-                        //     ]
-                        //     prop.children [
-                        //         Html.a [
-                        //             prop.children [
-                        //                 Html.text "MenuPage"
-                        //             ]
-                        //             if state.CurrentPage <> MenuPage then
-                        //                 prop.onClick (fun _ -> dispatch (ChangePage MenuPage))
-                        //         ]
-                        //     ]
-                        // ]
-                        // Html.li [
-                        //     prop.className [
-                        //         if state.CurrentPage = RecipesPage then
-                        //             Bulma.IsActive
-                        //     ]
-                        //     prop.children [
-                        //         Html.a [
-                        //             prop.children [
-                        //                 Html.text "Recipes"
-                        //             ]
-                        //             if state.CurrentPage <> RecipesPage then
-                        //                 prop.onClick (fun _ -> dispatch (ChangePage RecipesPage))
-                        //         ]
-                        //     ]
-                        // ]
-                        // Html.li [
-                        //     prop.className [
-                        //         if state.CurrentPage = StockPage then
-                        //             Bulma.IsActive
-                        //     ]
-                        //     prop.children [
-                        //         Html.a [
-                        //             prop.children [
-                        //                 Html.text "Stock"
-                        //             ]
-                        //             if state.CurrentPage <> StockPage then
-                        //                 prop.onClick (fun _ -> dispatch (ChangePage StockPage))
-                        //         ]
-                        //     ]
-                        // ]
-                        // Html.li [
-                        //     prop.className [
-                        //         if state.CurrentPage = ProductionPage then
-                        //             Bulma.IsActive
-                        //     ]
-                        //     prop.children [
-                        //         Html.a [
-                        //             prop.children [
-                        //                 Html.text "Production"
-                        //             ]
-                        //             if state.CurrentPage <> ProductionPage then
-                        //                 prop.onClick (fun _ -> dispatch (ChangePage ProductionPage))
-                        //         ]
-                        //     ]
-                        // ]
-
-                        Html.li [
-                            Html.a [
-                                prop.onClick (fun _ -> dispatch (IfEngineMsg NewGame))
-                                prop.children [
-                                    Html.div [
-                                        Fa.i [ Fa.Solid.File ] []
-                                        span [] [ str " " ]
-                                        Html.text "New Game"
-                                    ]
-                                ]
-                            ]
-                        ]
-                        Html.li [
-                            Html.a [
-                                prop.onClick (fun _ -> dispatch (IfEngineMsg Save))
-                                prop.children [
-                                    Html.div [
-                                        Fa.i [ Fa.Solid.Save ] []
-                                        span [] [ str " " ]
-                                        Html.text "Save"
-                                    ]
-                                ]
-                            ]
-                        ]
-                        Html.li [
-                            Html.a [
-                                prop.onClick (fun _ -> dispatch (IfEngineMsg Load))
-                                prop.children [
-                                    Html.div [
-                                        Fa.i [ Fa.Solid.Upload ] []
-                                        span [] [ str " " ]
-                                        Html.text "Load"
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ]
-        ]
-
-    Html.section [
-        prop.style [
-            style.padding 20
-        ]
-        prop.children [
-            nav
-            match state.CurrentPage with
-            | MenuPage ->
-                menuPageRender state dispatch
-            | RecipesPage ->
-                let recipesRender () =
-                    let recipeRender (recipe:Core.Recipe) =
-                        if List.isEmpty recipe.Ingredients then
-                            [
-                                Html.p [
-                                    prop.text (sprintf "%s" recipe.ItemName)
-                                ]
-                            ]
-                        else
-                            [
-                                Html.h1 [
-                                    prop.children [
-                                        Html.span [
-                                            prop.text recipe.ItemName
-                                        ]
-                                        Html.span " "
-                                        Html.span [
-                                            Fa.i [ Fa.Solid.ArrowRight ] []
-                                        ]
-                                        Html.span " "
-                                        Html.span [
-                                            prop.className [
-
-                                            ]
-                                            prop.text recipe.OutputCount
-                                        ]
-                                    ]
-                                    // prop.text (sprintf "%s -> %d" recipe.ItemName recipe.OutputCount)
-                                ]
-                                Html.ul [
-                                    recipe.Ingredients
-                                    |> List.map (fun (name, count) ->
-                                        Html.li [
-                                            prop.children [
-                                                Html.text (sprintf "%s x %d" name count)
-                                            ]
-                                        ]
-                                    )
-                                    |> prop.children
-                                ]
-                            ]
-                    Core.recipes
-                    |> Map.toList
-                    |> List.map (fun (_, x) ->
-
-                        Html.ul [
-                            prop.children [
-                                Html.div [
-                                    prop.className [
-                                        Bulma.Box
-                                    ]
-                                    prop.children [
-                                        Html.div [
-                                            prop.className [
-                                                Bulma.Columns
-                                                Bulma.IsMobile
-                                                Bulma.IsVcentered
-                                            ]
-                                            prop.children [
-                                                Html.div [
-                                                    prop.className [
-                                                        Bulma.Column
-                                                        Bulma.Content
-                                                    ]
-                                                    prop.children (recipeRender x)
-                                                ]
-                                            ]
-                                        ]
-                                    ]
-                                ]
-                            ]
-                        ]
-                    )
-                yield! recipesRender ()
-            | StockPage ->
-                let fieldWithButtons (name:string) count =
-                    Html.div [
-                        prop.className [
-                            Bulma.Box
-                        ]
-                        prop.children [
-                            Html.div [
-                                prop.className [
-                                    Bulma.Columns
-                                    Bulma.IsMobile
-                                    Bulma.IsVcentered
-                                ]
-                                prop.children [
-                                    Html.div [
-                                        prop.className [
-                                            Bulma.Column
-                                        ]
-                                        prop.children [Html.text name]
-                                    ]
-                                    Html.div [
-                                        prop.className [
-                                            Bulma.Column
-                                            Bulma.IsNarrow
-                                        ]
-                                        prop.children [
-                                            Html.div [
-                                                prop.className [
-                                                    Bulma.Field
-                                                    Bulma.HasAddons
-                                                ]
-                                                prop.children [
-                                                    let toControl (x:ReactElement) =
-                                                        Html.p [
-                                                            prop.className [
-                                                                Bulma.Control
-                                                            ]
-                                                            prop.children x
-                                                        ]
-                                                    Html.button [
-                                                        prop.className [
-                                                            Bulma.Button
-                                                        ]
-                                                        prop.children [
-                                                            Fa.i [ Fa.Solid.CaretUp ] []
-                                                        ]
-                                                        prop.onClick (fun _ -> dispatch (CraftMsg (Increment name)))
-                                                    ]
-                                                    |> toControl
-                                                    Html.button [
-                                                        prop.className [
-                                                            Bulma.Button
-                                                            Bulma.IsStatic
-                                                        ]
-                                                        prop.text (count:string)
-                                                    ]
-                                                    |> toControl
-                                                    Html.button [
-                                                        prop.className [
-                                                            Bulma.Button
-                                                        ]
-                                                        prop.children [
-                                                            Fa.i [ Fa.Solid.CaretUp ] []
-                                                        ]
-                                                        prop.onClick (fun _ -> dispatch (CraftMsg (Decrement name)))
-                                                    ]
-                                                    |> toControl
-                                                ]
-                                            ]
-                                        ]
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                Html.label [
-                    prop.className [
-                        Bulma.Checkbox
-                    ]
-                    prop.children [
-                        Html.input [
-                            prop.type'.checkbox
-                            prop.isChecked state.ShowOnlyAvailableGoods
-                            prop.onCheckedChange (fun x ->
-                                dispatch (CraftMsg (ChangeShowOnlyAvailableGoods x))
-                            )
-                        ]
-                        Html.text " Show only available goods"
-                    ]
-                ]
-                let stockRender () =
-                    let xs =
-                        state.Stock
-                        |> Map.toList
-                    if state.ShowOnlyAvailableGoods then
-                        xs
-                        |> List.choose (fun (name, x) ->
-                            if x > 0 then
-                                Html.ul [
-                                    prop.children [
-                                        fieldWithButtons name (string x)
-                                    ]
-                                ]
-                                |> Some
-                            else None
-                        )
-                    else
-                        xs
-                        |> List.map (fun (name, x) ->
-                            Html.ul [
-                                prop.children [
-                                    fieldWithButtons name (string x)
-                                ]
-                            ]
-                        )
-                yield! stockRender ()
-            | ProductionPage ->
-                let fieldWithButtons (name:string) availCount =
-                    Html.div [
-                        prop.className [
-                            Bulma.Box
-                        ]
-                        prop.children [
-                            Html.div [
-                                prop.className [
-                                    Bulma.Columns
-                                    Bulma.IsMobile
-                                    Bulma.IsVcentered
-                                ]
-                                prop.children [
-                                    Html.div [
-                                        prop.className [
-                                            Bulma.Column
-                                        ]
-                                        prop.children [Html.text name]
-                                    ]
-                                    Html.div [
-                                        prop.className [
-                                            Bulma.Column
-                                            Bulma.IsNarrow
-                                        ]
-                                        prop.children [
-                                            Html.div [
-                                                prop.className [
-                                                    Bulma.Field
-                                                    Bulma.HasAddons
-                                                ]
-                                                prop.children [
-                                                    let toControl (x:ReactElement) =
-                                                        Html.p [
-                                                            prop.className [
-                                                                Bulma.Control
-                                                            ]
-                                                            prop.children x
-                                                        ]
-                                                    Html.button [
-                                                        prop.className [
-                                                            Bulma.Button
-                                                        ]
-                                                        prop.children [
-                                                            Fa.i [ Fa.Solid.Check ] []
-                                                        ]
-                                                        prop.onClick (fun _ -> dispatch (CraftMsg (Make name)))
-                                                    ]
-                                                    |> toControl
-                                                    Html.button [
-                                                        prop.className [
-                                                            Bulma.Button
-                                                            Bulma.IsStatic
-                                                        ]
-                                                        prop.text (availCount:int)
-                                                    ]
-                                                    |> toControl
-                                                ]
-                                            ]
-                                        ]
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                let stockRender () =
-                    Core.avail Core.recipes state.Stock
-                    |> List.map (fun (name, availCount) ->
-                        Html.ul [
-                            prop.children [
-                                fieldWithButtons name availCount
-                            ]
-                        ]
-                    )
-                yield! stockRender ()
-        ]
-    ]
 open Elmish.React
 
-
-Program.mkProgram init update render
+Program.mkProgram init update view
 |> Program.withReactSynchronous "elmish-app"
 #if DEBUG
 |> Program.withConsoleTrace
