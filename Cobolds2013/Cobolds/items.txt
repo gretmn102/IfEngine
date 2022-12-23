@@ -1,4 +1,0 @@
-"steel", { Multi = [ "blacksmith", 1; "forge", 1; ]; Single = [ "iron ore", 2 ]});
-         ( "smelter", { Single = [ "hammer", 1 ]; Multi = [] })]
-
-"blacksmith", 10; "forge", 10; "iron ore", 5; "hammer"
