@@ -20,8 +20,6 @@ type ImgState =
 
 type State =
     {
-        CraftState: Craft.Index.State
-
         IfEngineState: IfEngine.Index.State<Scenario.LabelName,Scenario.Addon,bool>
 
         FoxImgState: ImgState
@@ -34,7 +32,6 @@ type FoxEscapeMsg =
     | UpdateDuckState of Img
 
 type Msg =
-    | CraftMsg of Craft.Index.Msg
     | IfEngineMsg of IfEngine.Index.Msg
     | FoxEscapeMsg of FoxEscapeMsg
 
@@ -51,7 +48,6 @@ let init () =
 
     let st =
         {
-            CraftState = Craft.Index.init()
             IfEngineState =
                 {
                     IfEngine.Index.Game =
@@ -133,15 +129,6 @@ let update (msg: Msg) (state: State) =
                 FoxEscape.updateDuckSprite state.DuckImgState.IsRounded img
             | _ -> ()
             state, Cmd.none
-
-    | CraftMsg msg ->
-        let craftState, cmd =
-            Craft.Index.update msg state.CraftState
-        let state =
-            { state with
-                CraftState = craftState
-            }
-        state, cmd |> Cmd.map CraftMsg
 
 open Zanaptak.TypedCssClasses
 type Bulma = CssClasses<"https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.1/css/bulma.min.css", Naming.PascalCase>

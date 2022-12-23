@@ -10,8 +10,6 @@
     <Compile Include="InteractiveFictionEngine.fs" />
     <Compile Include="IfEngineIndex.fs" />
     <Compile Include="Scenario.fs" />
-    <Compile Include="Core.fs" />
-    <Compile Include="CraftIndex.fs" />
     <Compile Include="App.fs" />
   </ItemGroup>
   <Import Project="..\.paket\Paket.Restore.targets" />
