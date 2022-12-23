@@ -2,13 +2,9 @@
 
 ```batch
 dotnet tool restore
-paket install
+dotnet paket install
 npm install
-
-cd src
 dotnet restore
-cd ../
-
 npm start
 ```
 
