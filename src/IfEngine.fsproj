@@ -6,7 +6,7 @@
     <Compile Include="..\paket-files\gretmn102\FsharpMyExtension\FsharpMyExtension\FsharpMyExtension\Containers\LZ.fs" />
     <Compile Include="..\paket-files\gretmn102\FsharpMyExtension\FsharpMyExtension\FsharpMyExtension\Containers\Either.fs" />
     <Compile Include="Types.fs" />
-    <Compile Include="InteractiveFictionEngine.fs" />
+    <Compile Include="Interpreter.fs" />
     <Compile Include="Game.fs" />
     <Compile Include="Fable\Index.fs" />
     <Compile Include="Fable\Utils.fs" />
