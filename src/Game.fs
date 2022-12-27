@@ -1,11 +1,11 @@
 module IfEngine.Game
 
-type State<'LabelName, 'Addon, 'Arg> =
+type State<'Text, 'LabelName, 'Addon, 'Arg> =
     {
-        Game: Interpreter.Command<'LabelName, 'Addon, 'Arg>
-        GameState: Interpreter.State<'LabelName, 'Addon>
+        Game: Interpreter.Command<'Text, 'LabelName, 'Addon, 'Arg>
+        GameState: Interpreter.State<'Text, 'LabelName, 'Addon>
 
-        SavedGameState: Interpreter.State<'LabelName, 'Addon>
+        SavedGameState: Interpreter.State<'Text, 'LabelName, 'Addon>
     }
 
 type Msg =
@@ -16,7 +16,7 @@ type Msg =
     | Load
     | NewGame
 
-let update interp scenarioInit (msg: Msg) (state: State<'LabelName, 'Addon, 'Arg>) =
+let update interp scenarioInit (msg: Msg) (state: State<'Text, 'LabelName, 'Addon, 'Arg>) =
     let nextState x =
         let rec nextState gameState = function
             | Interpreter.NextState newGameState ->

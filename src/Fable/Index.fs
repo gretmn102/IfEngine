@@ -6,6 +6,7 @@ open Feliz
 open Zanaptak.TypedCssClasses
 
 open IfEngine
+open IfEngine.Fable.Utils
 
 type Bulma = CssClasses<"https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.1/css/bulma.min.css", Naming.PascalCase>
 
@@ -59,8 +60,8 @@ let nav dispatch =
         ]
     ]
 
-let gameView addon (state: Game.State<'LabelName, 'Addon, 'Arg>) dispatch =
-    let print (xs:ReactElement list) =
+let gameView addon (state: Game.State<Text, 'LabelName, 'Addon, 'Arg>) dispatch =
+    let print (xs: ReactElement list) =
         Html.div [
             prop.className Bulma.Content
             prop.children xs
@@ -132,7 +133,7 @@ let gameView addon (state: Game.State<'LabelName, 'Addon, 'Arg>) dispatch =
             )
         ]
 
-let view addon (state: Game.State<'LabelName, 'Addon, 'Arg>) (dispatch: Game.Msg -> unit) =
+let view addon (state: Game.State<Text, 'LabelName, 'Addon, 'Arg>) (dispatch: Game.Msg -> unit) =
     Html.section [
         prop.style [
             style.padding 20

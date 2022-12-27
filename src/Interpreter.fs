@@ -3,20 +3,20 @@ open FsharpMyExtension.ListZipper
 
 open IfEngine.Types
 
-type State<'LabelName, 'Addon> =
+type State<'Text, 'LabelName, 'Addon> =
     {
-        LabelState: ListZ<Stmt<'LabelName, 'Addon>> list
+        LabelState: ListZ<Stmt<'Text, 'LabelName, 'Addon>> list
         Vars: Vars
     }
 
-type Command<'LabelName, 'Addon, 'Arg> =
-    | Print of Fable.React.ReactElement list * (unit -> Command<'LabelName, 'Addon, 'Arg>)
-    | Choices of Fable.React.ReactElement list * string list * (int -> Command<'LabelName, 'Addon, 'Arg>)
+type Command<'Text, 'LabelName, 'Addon, 'Arg> =
+    | Print of 'Text * (unit -> Command<'Text, 'LabelName, 'Addon, 'Arg>)
+    | Choices of 'Text * string list * (int -> Command<'Text, 'LabelName, 'Addon, 'Arg>)
     | End
-    | AddonAct of 'Addon * ('Arg -> Command<'LabelName, 'Addon, 'Arg>)
-    | NextState of State<'LabelName, 'Addon>
+    | AddonAct of 'Addon * ('Arg -> Command<'Text, 'LabelName, 'Addon, 'Arg>)
+    | NextState of State<'Text, 'LabelName, 'Addon>
 
-let interp addon (scenario: Scenario<'LabelName,'Addon>) (state: State<'LabelName, 'Addon>) =
+let interp addon (scenario: Scenario<'Text, 'LabelName, 'Addon>) (state: State<'Text, 'LabelName, 'Addon>) =
     let next changeState stack =
         let rec next = function
             | x::xs ->

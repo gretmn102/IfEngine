@@ -7,15 +7,15 @@ type Var =
 
 type Vars = Map<string, Var>
 
-type Stmt<'LabelName, 'Addon> =
-    | Say of Fable.React.ReactElement list
+type Stmt<'Text, 'LabelName, 'Addon> =
+    | Say of 'Text
     | Jump of 'LabelName
-    | Menu of Fable.React.ReactElement list * (string * Stmt<'LabelName, 'Addon> list) list
-    | If of (Vars -> bool) * Stmt<'LabelName, 'Addon> list * Stmt<'LabelName, 'Addon> list
+    | Menu of 'Text * (string * Stmt<'Text, 'LabelName, 'Addon> list) list
+    | If of (Vars -> bool) * Stmt<'Text, 'LabelName, 'Addon> list * Stmt<'Text, 'LabelName, 'Addon> list
     | ChangeVars of (Vars -> Vars)
     | Addon of 'Addon
 
-type Label<'LabelName, 'Addon> = 'LabelName * Stmt<'LabelName, 'Addon> list
+type Label<'Text, 'LabelName, 'Addon> = 'LabelName * Stmt<'Text, 'LabelName, 'Addon> list
 
-type Scenario<'LabelName, 'Addon> when 'LabelName : comparison =
-    Map<'LabelName, Label<'LabelName, 'Addon>>
+type Scenario<'Text, 'LabelName, 'Addon> when 'LabelName : comparison =
+    Map<'LabelName, Label<'Text, 'LabelName, 'Addon>>
