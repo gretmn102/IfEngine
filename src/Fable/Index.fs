@@ -5,7 +5,7 @@ open Fulma
 open Feliz
 open Zanaptak.TypedCssClasses
 
-open IfEngine.Core
+open IfEngine
 
 type Bulma = CssClasses<"https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.1/css/bulma.min.css", Naming.PascalCase>
 

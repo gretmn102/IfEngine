@@ -1,7 +1,7 @@
 module IfEngine.Fable.Utils
 open Feliz
 
-open IfEngine.Core
+open IfEngine.Types
 
 let label (labelName: 'LabelName) (stmts: Stmt<_, _> list) =
     labelName, stmts
