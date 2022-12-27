@@ -7,6 +7,7 @@
     <Compile Include="..\paket-files\gretmn102\FsharpMyExtension\FsharpMyExtension\FsharpMyExtension\Containers\Either.fs" />
     <Compile Include="InteractiveFictionEngine.fs" />
     <Compile Include="IfEngineIndex.fs" />
+    <Compile Include="Fable\Utils.fs" />
   </ItemGroup>
   <Import Project="..\.paket\Paket.Restore.targets" />
 </Project>

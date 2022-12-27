@@ -1,86 +1,13 @@
-module IfEngine.Index
-open Elmish
-open FsharpMyExtension.Either
-
-open IfEngine
-
-type State<'LabelName, 'Addon, 'Arg> =
-    {
-        Game: Core.T<'LabelName, 'Addon, 'Arg>
-        GameState: Core.State<'LabelName, 'Addon>
-
-        SavedGameState: Core.State<'LabelName, 'Addon>
-    }
-
-type Msg =
-    | Next
-    | Choice of int
-    | NextState
-    | Save
-    | Load
-    | NewGame
-
-let update interp scenarioInit (msg: Msg) (state: State<'LabelName, 'Addon, 'Arg>) =
-    let nextState x =
-        let rec nextState gameState = function
-            | Core.NextState newGameState ->
-                nextState newGameState (interp newGameState)
-            | game ->
-                { state with
-                    GameState = gameState
-                    Game = game }
-        nextState state.GameState x
-    match msg with
-    | Next ->
-        match state.Game with
-        | Core.Print(_, f) ->
-            nextState (f ()), Cmd.none
-        | Core.NextState x ->
-            failwith "nextNextState"
-        | Core.End
-        | Core.Choices _
-        | Core.AddonAct _ ->
-            state, Cmd.none
-    | Choice i ->
-        match state.Game with
-        | Core.Choices(_, _, f)->
-            nextState (f i), Cmd.none
-        | Core.Print(_, f) ->
-            nextState (f ()), Cmd.none
-        | Core.NextState x ->
-            failwith "choiceNextState"
-        | Core.End
-        | Core.AddonAct _ -> state, Cmd.none
-    | NextState ->
-        nextState state.Game, Cmd.none
-    | Save ->
-        let state =
-            { state with
-                SavedGameState = state.GameState }
-        state, Cmd.none
-    | Load ->
-        let state =
-            let gameState = state.SavedGameState
-            { state with
-                Game = interp gameState
-                GameState = gameState }
-        state, Cmd.none
-    | NewGame ->
-        let state =
-            { state with
-                Game = interp scenarioInit }
-        state, Cmd.none
-
-open Zanaptak.TypedCssClasses
-type Bulma = CssClasses<"https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.1/css/bulma.min.css", Naming.PascalCase>
-
+module IfEngine.Fable.Index
 open Fable.React
-open Fable.React.Props
-
 open Fable.FontAwesome
 open Fulma
-
 open Feliz
+open Zanaptak.TypedCssClasses
+
+open IfEngine.Core
+
+type Bulma = CssClasses<"https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.1/css/bulma.min.css", Naming.PascalCase>
 
 let nav dispatch =
     Html.div [
@@ -93,7 +20,7 @@ let nav dispatch =
                 prop.children [
                     Html.li [
                         Html.a [
-                            prop.onClick (fun _ -> dispatch NewGame)
+                            prop.onClick (fun _ -> dispatch Game.NewGame)
                             prop.children [
                                 Html.div [
                                     Fa.i [ Fa.Solid.File ] []
@@ -105,7 +32,7 @@ let nav dispatch =
                     ]
                     Html.li [
                         Html.a [
-                            prop.onClick (fun _ -> dispatch Save)
+                            prop.onClick (fun _ -> dispatch Game.Save)
                             prop.children [
                                 Html.div [
                                     Fa.i [ Fa.Solid.Save ] []
@@ -117,7 +44,7 @@ let nav dispatch =
                     ]
                     Html.li [
                         Html.a [
-                            prop.onClick (fun _ -> dispatch Load)
+                            prop.onClick (fun _ -> dispatch Game.Load)
                             prop.children [
                                 Html.div [
                                     Fa.i [ Fa.Solid.Upload ] []
@@ -131,7 +58,8 @@ let nav dispatch =
             ]
         ]
     ]
-let gameView addon (state:State<'LabelName, 'Addon, 'Arg>) dispatch =
+
+let gameView addon (state: Game.State<'LabelName, 'Addon, 'Arg>) dispatch =
     let print (xs:ReactElement list) =
         Html.div [
             prop.className Bulma.Content
@@ -139,7 +67,7 @@ let gameView addon (state:State<'LabelName, 'Addon, 'Arg>) dispatch =
         ]
 
     match state.Game with
-    | Core.Print(xs, _) ->
+    | Interpreter.Print(xs, _) ->
         Html.div [
             prop.children [
                 print xs
@@ -155,7 +83,7 @@ let gameView addon (state:State<'LabelName, 'Addon, 'Arg>) dispatch =
                             prop.className [
                                 Bulma.Button
                             ]
-                            prop.onClick (fun _ -> dispatch Next)
+                            prop.onClick (fun _ -> dispatch Game.Next)
 
                             prop.text "..."
                         ]
@@ -163,7 +91,7 @@ let gameView addon (state:State<'LabelName, 'Addon, 'Arg>) dispatch =
                 ]
             ]
         ]
-    | Core.End ->
+    | Interpreter.End ->
         Html.div [
             prop.style [
                 style.justifyContent.center
@@ -171,7 +99,7 @@ let gameView addon (state:State<'LabelName, 'Addon, 'Arg>) dispatch =
             ]
             prop.text "Конец"
         ]
-    | Core.Choices(caption, choices, _) ->
+    | Interpreter.Choices(caption, choices, _) ->
         let xs =
             choices
             |> List.mapi (fun i label ->
@@ -185,7 +113,7 @@ let gameView addon (state:State<'LabelName, 'Addon, 'Arg>) dispatch =
                             prop.className [
                                 Bulma.Button
                             ]
-                            prop.onClick (fun _ -> dispatch (Choice i))
+                            prop.onClick (fun _ -> dispatch (Game.Choice i))
                             prop.text label
                         ]
                     ]
@@ -194,16 +122,17 @@ let gameView addon (state:State<'LabelName, 'Addon, 'Arg>) dispatch =
         Html.div [
             prop.children (print caption :: xs)
         ]
-    | Core.AddonAct(arg, _) ->
+    | Interpreter.AddonAct(arg, _) ->
         addon arg state dispatch
-    | Core.NextState x ->
+    | Interpreter.NextState x ->
         Html.div [
             prop.text "NextState"
             prop.ref (fun e ->
-                dispatch NextState
+                dispatch Game.NextState
             )
         ]
-let view addon (state:State<'LabelName, 'Addon, 'Arg>) (dispatch: Msg -> unit) =
+
+let view addon (state: Game.State<'LabelName, 'Addon, 'Arg>) (dispatch: Game.Msg -> unit) =
     Html.section [
         prop.style [
             style.padding 20
