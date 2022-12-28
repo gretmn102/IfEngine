@@ -1,20 +1,28 @@
 {
 	"version": "2.0.0",
 	"tasks": [
-		{
-			"type": "npm",
-			"script": "start",
-			"problemMatcher": [],
-			"label": "npm: start",
-			"detail": "webpack-dev-server"
-		},
-		{
-			"type": "npm",
-			"script": "build",
-			"group": "build",
-			"problemMatcher": [],
-			"label": "npm: build",
-			"detail": "webpack --mode production"
-		}
-	]
+        {
+            "type": "npm",
+            "script": "start",
+            "problemMatcher": [],
+            "label": "npm: start",
+            "detail": "webpack-dev-server"
+        },
+        {
+            "type": "npm",
+            "script": "build",
+            "group": "build",
+            "problemMatcher": [],
+            "label": "npm: build",
+            "detail": "webpack --mode production"
+        },
+        {
+            "label": "tests",
+            "type": "shell",
+            "command": [
+                "tests.cmd"
+            ],
+            "problemMatcher": []
+        }
+    ]
 }
