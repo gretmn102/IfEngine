@@ -8,6 +8,7 @@
     <Compile Include="Types.fs" />
     <Compile Include="Interpreter.fs" />
     <Compile Include="Game.fs" />
+    <Compile Include="Utils.fs" />
     <Compile Include="Fable\Utils.fs" />
     <Compile Include="Fable\Index.fs" />
   </ItemGroup>
