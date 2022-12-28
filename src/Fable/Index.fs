@@ -126,12 +126,7 @@ let gameView addon (state: Game.State<Text, 'LabelName, 'Addon, 'Arg>) dispatch 
     | Interpreter.AddonAct(arg, _) ->
         addon arg state dispatch
     | Interpreter.NextState x ->
-        Html.div [
-            prop.text "NextState"
-            prop.ref (fun e ->
-                dispatch Game.NextState
-            )
-        ]
+        failwith "NextState"
 
 let view addon (state: Game.State<Text, 'LabelName, 'Addon, 'Arg>) (dispatch: Game.Msg -> unit) =
     Html.section [
