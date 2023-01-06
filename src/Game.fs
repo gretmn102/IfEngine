@@ -11,6 +11,7 @@ type State<'Text, 'LabelName, 'Addon, 'Arg> =
 type Msg =
     | Next
     | Choice of int
+    | NextState
     | Save
     | Load
     | NewGame
@@ -47,6 +48,8 @@ let update interp scenarioInit (msg: Msg) (state: State<'Text, 'LabelName, 'Addo
             failwith "choiceNextState"
         | Interpreter.End
         | Interpreter.AddonAct _ -> state
+    | NextState ->
+        nextState state.Game
     | Save ->
         let state =
             { state with
