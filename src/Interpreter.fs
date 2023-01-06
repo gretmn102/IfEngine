@@ -199,7 +199,6 @@ let interp addon (scenario: Scenario<'Text, 'LabelName, 'Addon>) (state: State<'
                                     Stack.empty
                                 else
                                     Stack.createSimpleStatement 0
-                            printfn "%A" <| LabelState.create labelName stack
                             LabelState.create labelName stack
                     }
                     |> NextState
