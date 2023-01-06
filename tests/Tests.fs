@@ -8,6 +8,8 @@ open IfEngine.Interpreter
 open IfEngine.Utils
 open IfEngine
 
+open Utils
+
 type Addon = unit
 
 type LabelName =
@@ -19,25 +21,6 @@ let say (txt: string) =
     Say txt
 
 let scenario, vars =
-    let createNumVar varName value vars =
-        let vars = Map.add varName (Num value) vars
-
-        let get (vars: Map<_, _>) =
-            match vars.[varName] with
-            | Num x -> x
-            | _ -> failwithf "expected Num _ but %s" varName
-
-        let update fn =
-            ChangeVars (fun vars ->
-                match Map.tryFind varName vars with
-                | Some (Num x) ->
-                    Map.add varName (Num (fn x)) vars
-                | _ ->
-                    Map.add varName (Num (fn 0)) vars
-            )
-
-        get, update, vars
-
     let vars = Map.empty
     let getApplesCount, updateApplesCount, vars = createNumVar "apples" 0 vars
     let getRoadApplesCount, updateRoadApplesCount, vars = createNumVar "applesOnRoad" 1 vars
@@ -92,26 +75,6 @@ let scenario, vars =
     |> Map.ofList
     |> fun scenario ->
         (scenario: Scenario<_, _, Addon>), vars
-
-let getPrint exp (cmd: Interpreter.Command<'Text, 'LabelName, 'Addon, 'Arg>) =
-    match cmd with
-    | Print(text, _) ->
-        Assert.Equal("", exp, text)
-    | x ->
-        failwithf "expected Print %A but:\n%A" exp x
-
-let getMenu exp (cmd: Interpreter.Command<'Text, 'LabelName, 'Addon, 'Arg>) =
-    match cmd with
-    | Choices(text, selects, _) ->
-        Assert.Equal("", exp, (text, selects))
-    | x ->
-        failwithf "expected Menu %A\nbut:\n%A" exp x
-
-let getEnd (cmd: Interpreter.Command<'Text, 'LabelName, 'Addon, 'Arg>) =
-    match cmd with
-    | End -> ()
-    | x ->
-        failwithf "expected End but:\n%A" x
 
 [<Tests>]
 let InterpreterTests =
