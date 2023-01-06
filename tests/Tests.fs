@@ -17,9 +17,6 @@ type LabelName =
     | LeftRoad
     | RightRoad
 
-let say (txt: string) =
-    Say txt
-
 let scenario, vars =
     let vars = Map.empty
     let getApplesCount, updateApplesCount, vars = createNumVar "apples" 0 vars

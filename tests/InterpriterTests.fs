@@ -5,32 +5,31 @@ open IfEngine.Types
 open IfEngine.Interpreter
 open IfEngine.Utils
 
-let say (txt: int) =
-    Say txt
+open Utils
 
 [<Tests>]
 let InterpTests =
     let mock: Block<_, unit, unit> =
         [
-            say 0
-            say 1
-            menu 2 [
+            say "0"
+            say "1"
+            menu "2" [
                 choice "0" [
-                    say 0
-                    say 1
+                    say "0"
+                    say "1"
                 ]
                 choice "1" [
-                    say 0
+                    say "0"
                     if' (fun _ -> true) [
-                        say 0
-                        say 1
-                        say 2
+                        say "0"
+                        say "1"
+                        say "2"
                     ] [
-                        say 0
+                        say "0"
                     ]
                 ]
             ]
-            say 3
+            say "3"
         ]
 
     testList "InterpTests" [

@@ -2,6 +2,7 @@ module Utils
 open Fuchu
 
 open IfEngine
+open IfEngine.Types
 open IfEngine.Interpreter
 
 let getPrint exp (cmd: Interpreter.Command<'Text, 'LabelName, 'Addon, 'Arg>) =
@@ -23,3 +24,6 @@ let getEnd (cmd: Interpreter.Command<'Text, 'LabelName, 'Addon, 'Arg>) =
     | End -> ()
     | x ->
         failwithf "expected End but:\n%A" x
+
+let say (txt: string) =
+    Say txt
