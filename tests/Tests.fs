@@ -137,9 +137,12 @@ let InterpreterTests =
             let interp gameState =
                 gameState
                 |> interp
-                    (fun next state isWin addon ->
+                    ((fun state isWin addon ->
                         failwith "addon not implemented"
-                    )
+                    ),
+                    (fun subIndex x ->
+                        failwithf "handleCustomStatement %A" x
+                    ))
                     scenario.Scenario
                 |> function
                     | Ok x -> x

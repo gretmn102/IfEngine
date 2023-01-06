@@ -37,7 +37,7 @@ type StackStatements<'Text, 'LabelName, 'Addon> =
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module StackStatements =
-    let ofStack (startedBlock: Block<'Text, 'LabelName, 'Addon>) (stack: Stack) : Result<StackStatements<'Text, 'LabelName, 'Addon>, _> =
+    let ofStack handleCustomStatement (startedBlock: Block<'Text, 'LabelName, 'Addon>) (stack: Stack) : Result<StackStatements<'Text, 'LabelName, 'Addon>, _> =
         let get (index: StatementIndexInBlock) (block: Block<'Text, 'LabelName, 'Addon>) =
             match index with
             | BlockStatement(index, subIndex) ->
@@ -56,6 +56,8 @@ module StackStatements =
                             Ok secondBlock
                         | _ ->
                             Error "subIndex in If statement"
+                    | Addon x ->
+                        handleCustomStatement subIndex x
                     | x -> Error (sprintf "Expected block statement but %A" x)
                 else
                     Error (sprintf "%d < block.Length:\n%A" index block)
@@ -119,10 +121,10 @@ module LabelState =
             Stack = stack
         }
 
-    let restoreBlock (scenario: Scenario<'Text, 'LabelName, 'Addon>) (labelState: LabelState<'LabelName>) =
+    let restoreBlock handleCustomStatement (scenario: Scenario<'Text, 'LabelName, 'Addon>) (labelState: LabelState<'LabelName>) =
         match Map.tryFind labelState.Label scenario with
         | Some (_, block) ->
-            StackStatements.ofStack block labelState.Stack
+            StackStatements.ofStack handleCustomStatement block labelState.Stack
         | None ->
             Error (sprintf "Not found %A label" labelState.Label)
 
@@ -173,11 +175,11 @@ let down subIndex (block: Block<'Text, 'LabelName, 'Addon>) stack state =
         }
         |> NextState
 
-let interp addon (scenario: Scenario<'Text, 'LabelName, 'Addon>) (state: State<'Text, 'LabelName, 'Addon>) =
+let interp (addon, handleCustomStatement) (scenario: Scenario<'Text, 'LabelName, 'Addon>) (state: State<'Text, 'LabelName, 'Addon>) =
     if List.isEmpty state.LabelState.Stack then
         Ok End
     else
-        match LabelState.restoreBlock scenario state.LabelState with
+        match LabelState.restoreBlock handleCustomStatement scenario state.LabelState with
         | Ok stack ->
             let next changeState (stack: StackStatements<'Text, 'LabelName, 'Addon>) =
                 next changeState stack state

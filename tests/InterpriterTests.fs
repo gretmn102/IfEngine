@@ -42,7 +42,7 @@ let InterpTests =
                     SimpleStatement 10
                 ]
                 |> List.rev
-                |> StackStatements.ofStack mock
+                |> StackStatements.ofStack (fun subIndex x -> failwithf "handleCustomStatement %A" x) mock
                 |> Result.map (
                     StackStatements.next
                     >> Option.get
