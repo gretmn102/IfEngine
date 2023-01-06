@@ -231,7 +231,7 @@ let interp (addon, handleCustomStatement) (scenario: Scenario<'Text, 'LabelName,
 
                 | Addon addonArg ->
                     AddonAct(addonArg, fun res ->
-                        addon state res addonArg
+                        addon state stack res addonArg
                     )
 
                 | ChangeVars f ->
