@@ -123,7 +123,10 @@ let InterpreterTests =
                 let init =
                     {
                         LabelState =
-                            [ ListZ.ofList (snd scenario.[beginLoc]) ]
+                            LabelState.create
+                                beginLoc
+                                (Stack.createSimpleStatement 0)
+
                         Vars = vars
                     }
                 {|
@@ -138,11 +141,13 @@ let InterpreterTests =
                         failwith "addon not implemented"
                     )
                     scenario.Scenario
+                |> function
+                    | Ok x -> x
+                    | Error err -> failwithf "%A" err
 
             let initGameState =
                 {
-                    Game.Game =
-                        interp scenario.Init
+                    Game.Game = interp scenario.Init
                     Game.GameState = scenario.Init
                     Game.SavedGameState = scenario.Init
                 }

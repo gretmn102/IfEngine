@@ -7,15 +7,16 @@ type Var =
 
 type Vars = Map<string, Var>
 
-type Stmt<'Text, 'LabelName, 'Addon> =
+type Block<'Text, 'LabelName, 'Addon> = Stmt<'Text, 'LabelName, 'Addon> list
+and Stmt<'Text, 'LabelName, 'Addon> =
     | Say of 'Text
     | Jump of 'LabelName
-    | Menu of 'Text * (string * Stmt<'Text, 'LabelName, 'Addon> list) list
-    | If of (Vars -> bool) * Stmt<'Text, 'LabelName, 'Addon> list * Stmt<'Text, 'LabelName, 'Addon> list
+    | Menu of 'Text * (string * Block<'Text, 'LabelName, 'Addon>) list
+    | If of (Vars -> bool) * Block<'Text, 'LabelName, 'Addon> * Block<'Text, 'LabelName, 'Addon>
     | ChangeVars of (Vars -> Vars)
     | Addon of 'Addon
 
-type Label<'Text, 'LabelName, 'Addon> = 'LabelName * Stmt<'Text, 'LabelName, 'Addon> list
+type Label<'Text, 'LabelName, 'Addon> = 'LabelName * Block<'Text, 'LabelName, 'Addon>
 
 type Scenario<'Text, 'LabelName, 'Addon> when 'LabelName : comparison =
     Map<'LabelName, Label<'Text, 'LabelName, 'Addon>>
