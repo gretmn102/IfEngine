@@ -139,27 +139,52 @@ type Command<'Text, 'LabelName, 'Addon, 'Arg> =
     | AddonAct of 'Addon * ('Arg -> Command<'Text, 'LabelName, 'Addon, 'Arg>)
     | NextState of State<'Text, 'LabelName, 'Addon>
 
-let interp addon (scenario: Scenario<'Text, 'LabelName, 'Addon>) (state: State<'Text, 'LabelName, 'Addon>) =
-    let next changeState (stack: StackStatements<'Text, 'LabelName, 'Addon>) =
-        match StackStatements.next stack with
-        | Some stackStatements ->
-            let state =
-                { state with
-                    LabelState =
-                        { state.LabelState with
-                            Stack =
-                                stackStatements
-                                |> StackStatements.toStack
-                        }
-                }
-            NextState (changeState state)
-        | None -> End
+let next changeState (stack: StackStatements<'Text, 'LabelName, 'Addon>) state =
+    match StackStatements.next stack with
+    | Some stackStatements ->
+        let state =
+            { state with
+                LabelState =
+                    { state.LabelState with
+                        Stack =
+                            stackStatements
+                            |> StackStatements.toStack
+                    }
+            }
+        NextState (changeState state)
+    | None -> End
 
+let down subIndex (block: Block<'Text, 'LabelName, 'Addon>) stack state =
+    if List.isEmpty block then
+        next id stack state
+    else
+        { state with
+            LabelState =
+                { state.LabelState with
+                    Stack =
+                        match state.LabelState.Stack with
+                        | SimpleStatement index::restStack ->
+                            restStack
+                            |> Stack.push (BlockStatement(index, subIndex))
+                            |> Stack.push (SimpleStatement 0)
+                        | x ->
+                            failwithf "Expected SimpleStatement index in state.LabelState.Stack but %A" x
+                }
+        }
+        |> NextState
+
+let interp addon (scenario: Scenario<'Text, 'LabelName, 'Addon>) (state: State<'Text, 'LabelName, 'Addon>) =
     if List.isEmpty state.LabelState.Stack then
         Ok End
     else
         match LabelState.restoreBlock scenario state.LabelState with
         | Ok stack ->
+            let next changeState (stack: StackStatements<'Text, 'LabelName, 'Addon>) =
+                next changeState stack state
+
+            let down subIndex (block: Block<'Text, 'LabelName, 'Addon>) =
+                down subIndex block stack state
+
             let headStack = List.head stack
             let currentStatement =
                 match headStack with
@@ -168,25 +193,6 @@ let interp addon (scenario: Scenario<'Text, 'LabelName, 'Addon>) (state: State<'
                 | _ ->
                     sprintf "First element in stack must be SimpleStatement"
                     |> Error
-
-            let down subIndex body =
-                if List.isEmpty body then
-                    next id stack
-                else
-                    { state with
-                        LabelState =
-                            { state.LabelState with
-                                Stack =
-                                    match state.LabelState.Stack with
-                                    | SimpleStatement index::restStack ->
-                                        restStack
-                                        |> Stack.push (BlockStatement(index, subIndex))
-                                        |> Stack.push (SimpleStatement 0)
-                                    | x ->
-                                        failwithf "Expected SimpleStatement index in state.LabelState.Stack but %A" x
-                            }
-                    }
-                    |> NextState
 
             match currentStatement with
             | Ok currentStatement ->
@@ -223,7 +229,7 @@ let interp addon (scenario: Scenario<'Text, 'LabelName, 'Addon>) (state: State<'
 
                 | Addon addonArg ->
                     AddonAct(addonArg, fun res ->
-                        addon next state res addonArg
+                        addon state res addonArg
                     )
 
                 | ChangeVars f ->
