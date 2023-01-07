@@ -55,20 +55,15 @@ let InterpreterTests =
         testCase "base" <| fun () ->
             let beginLoc = Crossroad
 
-            let scenario =
-                let init =
-                    {
-                        LabelState =
-                            LabelState.create
-                                beginLoc
-                                (Stack.createSimpleStatement 0)
+            let init =
+                {
+                    LabelState =
+                        LabelState.create
+                            beginLoc
+                            (Stack.createSimpleStatement 0)
 
-                        Vars = vars
-                    }
-                {|
-                    Scenario = scenario
-                    Init = init
-                |}
+                    Vars = vars
+                }
 
             let interp gameState =
                 gameState
@@ -83,20 +78,20 @@ let InterpreterTests =
                         | CustomStatement blocs ->
                             Ok blocs.[subIndex]
                     ))
-                    scenario.Scenario
+                    scenario
                 |> function
                     | Ok x -> x
                     | Error err -> failwithf "%A" err
 
             let initGameState =
                 {
-                    Game.Game = interp scenario.Init
-                    Game.GameState = scenario.Init
-                    Game.SavedGameState = scenario.Init
+                    Game.Game = interp init
+                    Game.GameState = init
+                    Game.SavedGameState = init
                 }
 
             let update msg gameState =
-                Game.update interp scenario.Init msg gameState
+                Game.update interp init msg gameState
 
             let state = initGameState
 
