@@ -125,15 +125,10 @@ let gameView addon (state: Game.State<Text, 'LabelName, 'Addon, 'Arg>) dispatch 
         ]
     | Interpreter.AddonAct(arg, _) ->
         addon arg state dispatch
-    | Interpreter.NextState x ->
-        Html.div [
-            prop.text "NextState"
-            prop.ref (fun e ->
-                dispatch Game.NextState
-            )
-        ]
+    | Interpreter.NextState _ ->
+        failwith "failwith NextState"
 
-let view addon (state: Game.State<Text, 'LabelName, 'Addon, 'Arg>) (dispatch: Game.Msg -> unit) =
+let view addon (state: Game.State<Text, 'LabelName, 'Addon, 'Arg>) (dispatch: Game.Msg<'Addon, 'Arg> -> unit) =
     Html.section [
         prop.style [
             style.padding 20

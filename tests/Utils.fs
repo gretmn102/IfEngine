@@ -25,5 +25,13 @@ let getEnd (cmd: Interpreter.Command<'Text, 'LabelName, 'Addon, 'Arg>) =
     | x ->
         failwithf "expected End but:\n%A" x
 
+let testCustomStatement (exp: 'Addon) eq (cmd: Interpreter.Command<'Text, 'LabelName, 'Addon, 'Arg>) =
+    match cmd with
+    | AddonAct(customStatement, _) ->
+        if not <| eq exp customStatement then
+            failwithf "expected: %A\nactual: %A" exp customStatement
+    | x ->
+        failwithf "expected Menu %A\nbut:\n%A" exp x
+
 let say (txt: string) =
     Say txt

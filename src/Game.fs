@@ -8,15 +8,15 @@ type State<'Text, 'LabelName, 'Addon, 'Arg> =
         SavedGameState: Interpreter.State<'Text, 'LabelName, 'Addon>
     }
 
-type Msg =
+type Msg<'CustomStatement, 'CustomStatementArg> =
     | Next
     | Choice of int
-    | NextState
+    | HandleCustomState of ('CustomStatement -> 'CustomStatementArg)
     | Save
     | Load
     | NewGame
 
-let update interp scenarioInit (msg: Msg) (state: State<'Text, 'LabelName, 'Addon, 'Arg>) =
+let update interp scenarioInit (msg: Msg<'Addon, 'Arg>) (state: State<'Text, 'LabelName, 'Addon, 'Arg>) =
     let nextState x =
         let rec nextState gameState = function
             | Interpreter.NextState newGameState ->
@@ -48,8 +48,13 @@ let update interp scenarioInit (msg: Msg) (state: State<'Text, 'LabelName, 'Addo
             failwith "choiceNextState"
         | Interpreter.End
         | Interpreter.AddonAct _ -> state
-    | NextState ->
-        nextState state.Game
+    | HandleCustomState handler ->
+        match state.Game with
+        | Interpreter.AddonAct(customStatement, f) ->
+            f (handler customStatement)
+            |> nextState
+        | x ->
+            failwithf "Expected: AddonAct\nActual: %A" x
     | Save ->
         let state =
             { state with
