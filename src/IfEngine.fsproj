@@ -3,8 +3,8 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\paket-files\gretmn102\FsharpMyExtension\FsharpMyExtension\FsharpMyExtension\Containers\LZ.fs" />
-    <Compile Include="..\paket-files\gretmn102\FsharpMyExtension\FsharpMyExtension\FsharpMyExtension\Containers\Either.fs" />
+    <Content Include="*.fsproj; *.fs; *.js;" Exclude="**\*.fs.js" PackagePath="fable\" />
+    <Content Include="Fable\*.fsproj; Fable\*.fs; Fable\*.js;" Exclude="**\*.fs.js" PackagePath="fable\Fable" />
     <Compile Include="Types.fs" />
     <Compile Include="Interpreter.fs" />
     <Compile Include="Game.fs" />

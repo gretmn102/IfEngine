@@ -393,3 +393,4 @@ paket-files/
 /.ionide/
 
 /public/bundle.js
+*.fs.js
