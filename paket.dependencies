@@ -1,20 +1,10 @@
-source https://nuget.org/api/v2
-storage:none
+strategy: min
+source https://api.nuget.org/v3/index.json
+framework: netstandard2.0
+storage: none
 
-nuget Fable.Core = 3.2.6
-nuget Fable.Elmish = 3.1.0
-nuget Fable.Elmish.React = 3.0.1
-nuget Fable.Promise = 2.2.0
-nuget Fable.Fetch = 2.2.0
-nuget Fable.Browser.Dom = 2.3.0
-nuget Fable.React = 7.3.0
-nuget Fable.SimpleHttp = 3.0.0
-nuget Feliz = 1.43.0
-nuget Thoth.Json = 5.1.0
-nuget Zanaptak.TypedCssClasses = 0.4.0
-
-nuget Fable.FontAwesome.Free = 2.1.0
-nuget Fulma = 2.10.0
+nuget FSharp.Core = 5.0.1
+nuget FuChu
 
 source https://gitlab.com/api/v4/projects/28574921/packages/nuget/index.json
-nuget FSharpMyExt = 1.10.0
+nuget FSharpMyExt = 1.10.1

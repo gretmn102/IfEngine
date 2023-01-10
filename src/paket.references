@@ -1,15 +1,2 @@
-Fable.Core
-Fable.Promise
-Fable.Fetch
-Fable.Browser.Dom
-Thoth.Json
-Fable.Elmish
-Fable.React
-Feliz
-Fable.Elmish.React
-Fable.SimpleHttp
-Zanaptak.TypedCssClasses
-
-Fable.FontAwesome.Free
-Fulma
+FSharp.Core
 FSharpMyExt
