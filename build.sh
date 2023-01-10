@@ -1,6 +1,5 @@
-cls
+#!/bin/bash
 
 dotnet tool restore
 dotnet paket install
-cd tests
-dotnet run -c Release
+dotnet fake build $@
