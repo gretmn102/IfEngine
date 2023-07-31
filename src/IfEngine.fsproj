@@ -6,6 +6,7 @@
     <Content Include="*.fsproj; *.fs; *.js;" Exclude="**\*.fs.js" PackagePath="fable\" />
     <Compile Include="Types.fs" />
     <Compile Include="Interpreter.fs" />
+    <Compile Include="AbstractEngine.fs" />
     <Compile Include="Game.fs" />
     <Compile Include="Utils.fs" />
   </ItemGroup>
