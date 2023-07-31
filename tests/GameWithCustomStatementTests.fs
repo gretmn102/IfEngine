@@ -57,7 +57,7 @@ let InterpreterTests =
             let init =
                 {
                     LabelState =
-                        LabelState.create
+                        NamedStack.create
                             beginLoc
                             (Stack.createSimpleStatement 0)
 

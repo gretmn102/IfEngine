@@ -108,21 +108,21 @@ module BlockStack =
             | [] -> None
         next stackStatements
 
-type LabelState<'LabelName> =
+type NamedStack<'LabelName> =
     {
         Label: 'LabelName
         Stack: Stack
     }
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
-module LabelState =
-    let create label stack : LabelState<'LabelName> =
+module NamedStack =
+    let create label stack : NamedStack<'LabelName> =
         {
             Label = label
             Stack = stack
         }
 
-    let restoreBlock handleCustomStatement (scenario: Scenario<'Text, 'LabelName, 'Addon>) (labelState: LabelState<'LabelName>) =
+    let restoreBlock handleCustomStatement (scenario: Scenario<'Text, 'LabelName, 'Addon>) (labelState: NamedStack<'LabelName>) =
         match Map.tryFind labelState.Label scenario with
         | Some (_, block) ->
             BlockStack.ofStack handleCustomStatement block labelState.Stack
@@ -131,6 +131,6 @@ module LabelState =
 
 type State<'Text, 'LabelName, 'Addon> =
     {
-        LabelState: LabelState<'LabelName>
+        LabelState: NamedStack<'LabelName>
         Vars: Vars
     }

@@ -50,7 +50,7 @@ module AbstractEngine =
         if List.isEmpty state.LabelState.Stack then
             Ok AbstractEngine.End
         else
-            match LabelState.restoreBlock handleCustomStatement scenario state.LabelState with
+            match NamedStack.restoreBlock handleCustomStatement scenario state.LabelState with
             | Ok stack ->
                 let next changeState (stack: BlockStack<'Text, 'LabelName, 'Addon>) =
                     next changeState stack state
@@ -78,7 +78,7 @@ module AbstractEngine =
                                         Stack.empty
                                     else
                                         Stack.createSimpleStatement 0
-                                LabelState.create labelName stack
+                                NamedStack.create labelName stack
                         }
                         |> AbstractEngine.NextState
 
