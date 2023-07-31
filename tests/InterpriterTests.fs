@@ -1,8 +1,8 @@
 module InterpriterTests
 open Fuchu
 
+open IfEngine
 open IfEngine.Types
-open IfEngine.Interpreter
 open IfEngine.Utils
 
 open Utils

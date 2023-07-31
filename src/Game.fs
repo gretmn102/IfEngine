@@ -2,10 +2,10 @@ module IfEngine.Game
 
 type State<'Text, 'LabelName, 'Addon, 'Arg> =
     {
-        Game: Interpreter.AbstractEngine<'Text, 'LabelName, 'Addon, 'Arg>
-        GameState: Interpreter.State<'Text, 'LabelName, 'Addon>
+        Game: AbstractEngine<'Text, 'LabelName, 'Addon, 'Arg>
+        GameState: State<'Text, 'LabelName, 'Addon>
 
-        SavedGameState: Interpreter.State<'Text, 'LabelName, 'Addon>
+        SavedGameState: State<'Text, 'LabelName, 'Addon>
     }
 
 type Msg<'CustomStatement, 'CustomStatementArg> =
@@ -19,7 +19,7 @@ type Msg<'CustomStatement, 'CustomStatementArg> =
 let update interp scenarioInit (msg: Msg<'Addon, 'Arg>) (state: State<'Text, 'LabelName, 'Addon, 'Arg>) =
     let nextState x =
         let rec nextState gameState = function
-            | Interpreter.AbstractEngine.NextState newGameState ->
+            | AbstractEngine.NextState newGameState ->
                 nextState newGameState (interp newGameState)
             | game ->
                 { state with
@@ -30,27 +30,27 @@ let update interp scenarioInit (msg: Msg<'Addon, 'Arg>) (state: State<'Text, 'La
     match msg with
     | Next ->
         match state.Game with
-        | Interpreter.AbstractEngine.Print(_, f) ->
+        | AbstractEngine.Print(_, f) ->
             nextState (f ())
-        | Interpreter.AbstractEngine.NextState x ->
+        | AbstractEngine.NextState x ->
             failwith "nextNextState"
-        | Interpreter.AbstractEngine.End
-        | Interpreter.AbstractEngine.Choices _
-        | Interpreter.AbstractEngine.AddonAct _ ->
+        | AbstractEngine.End
+        | AbstractEngine.Choices _
+        | AbstractEngine.AddonAct _ ->
             state
     | Choice i ->
         match state.Game with
-        | Interpreter.AbstractEngine.Choices(_, _, f)->
+        | AbstractEngine.Choices(_, _, f)->
             nextState (f i)
-        | Interpreter.AbstractEngine.Print(_, f) ->
+        | AbstractEngine.Print(_, f) ->
             nextState (f ())
-        | Interpreter.AbstractEngine.NextState x ->
+        | AbstractEngine.NextState x ->
             failwith "choiceNextState"
-        | Interpreter.AbstractEngine.End
-        | Interpreter.AbstractEngine.AddonAct _ -> state
+        | AbstractEngine.End
+        | AbstractEngine.AddonAct _ -> state
     | HandleCustomState handler ->
         match state.Game with
-        | Interpreter.AbstractEngine.AddonAct(customStatement, f) ->
+        | AbstractEngine.AddonAct(customStatement, f) ->
             f (handler customStatement)
             |> nextState
         | x ->

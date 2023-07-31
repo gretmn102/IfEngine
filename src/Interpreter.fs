@@ -1,4 +1,4 @@
-module IfEngine.Interpreter
+namespace IfEngine
 open IfEngine.Types
 
 [<RequireQualifiedAccess>]

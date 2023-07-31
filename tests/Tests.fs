@@ -3,10 +3,9 @@ open Fuchu
 open FsharpMyExtension
 open FsharpMyExtension.ListZipper
 
-open IfEngine.Types
-open IfEngine.Interpreter
-open IfEngine.Utils
 open IfEngine
+open IfEngine.Types
+open IfEngine.Utils
 
 open Utils
 
