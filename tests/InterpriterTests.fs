@@ -36,9 +36,9 @@ let InterpTests =
         testCase "base" <| fun () ->
             let act =
                 [
-                    BlockStatement(2, 1)
-                    BlockStatement(1, 0)
-                    SimpleStatement 10
+                    StatementIndexInBlock.BlockStatement(2, 1)
+                    StatementIndexInBlock.BlockStatement(1, 0)
+                    StatementIndexInBlock.SimpleStatement 10
                 ]
                 |> List.rev
                 |> StackStatements.ofStack (fun subIndex x -> failwithf "handleCustomStatement %A" x) mock
@@ -49,7 +49,7 @@ let InterpTests =
                     >> List.rev
                 )
 
-            let exp: Stack = [SimpleStatement 3]
+            let exp: Stack = [StatementIndexInBlock.SimpleStatement 3]
 
             Assert.Equal("", Ok exp, act)
     ]

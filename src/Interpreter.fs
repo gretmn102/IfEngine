@@ -1,6 +1,7 @@
 module IfEngine.Interpreter
 open IfEngine.Types
 
+[<RequireQualifiedAccess>]
 type StatementIndexInBlock =
     | BlockStatement of int * int
     /// Must be last element in stack
@@ -14,13 +15,13 @@ module Stack =
     let empty : Stack = []
 
     let createSimpleStatement index : Stack =
-        [SimpleStatement index]
+        [StatementIndexInBlock.SimpleStatement index]
 
     let tryHead (stack: Stack) =
         match stack with
         | head::_ ->
             match head with
-            | SimpleStatement index -> Ok index
+            | StatementIndexInBlock.SimpleStatement index -> Ok index
             | _ ->
                 sprintf "First element in stack must be SimpleStatement but %A" head
                 |> Error
@@ -40,7 +41,7 @@ module StackStatements =
     let ofStack handleCustomStatement (startedBlock: Block<'Text, 'LabelName, 'Addon>) (stack: Stack) : Result<StackStatements<'Text, 'LabelName, 'Addon>, _> =
         let get (index: StatementIndexInBlock) (block: Block<'Text, 'LabelName, 'Addon>) =
             match index with
-            | BlockStatement(index, subIndex) ->
+            | StatementIndexInBlock.BlockStatement(index, subIndex) ->
                 if index < block.Length then
                     match block.[index] with
                     | Menu(_, blocks) ->
@@ -61,7 +62,7 @@ module StackStatements =
                     | x -> Error (sprintf "Expected block statement but %A" x)
                 else
                     Error (sprintf "%d < block.Length:\n%A" index block)
-            | SimpleStatement index ->
+            | StatementIndexInBlock.SimpleStatement index ->
                 Ok block
 
         match stack with
@@ -71,7 +72,7 @@ module StackStatements =
             let rec f (block: Block<'Text, 'LabelName, 'Addon>) acc = function
                 | [index] ->
                     match index with
-                    | SimpleStatement _ ->
+                    | StatementIndexInBlock.SimpleStatement _ ->
                         Ok ((index, block)::acc)
                     | _ ->
                         sprintf "First element in stack must be SimpleStatement but %A" index
@@ -94,13 +95,13 @@ module StackStatements =
             | (index, block)::restStack ->
                 let index =
                     match index with
-                    | SimpleStatement index
-                    | BlockStatement(index, _) ->
+                    | StatementIndexInBlock.SimpleStatement index
+                    | StatementIndexInBlock.BlockStatement(index, _) ->
                         index
 
                 let index = index + 1
                 if index < List.length block then
-                    (SimpleStatement index, block)::restStack
+                    (StatementIndexInBlock.SimpleStatement index, block)::restStack
                     |> Some
                 else
                     next restStack
@@ -169,10 +170,10 @@ module AbstractEngine =
                     { state.LabelState with
                         Stack =
                             match state.LabelState.Stack with
-                            | SimpleStatement index::restStack ->
+                            | StatementIndexInBlock.SimpleStatement index::restStack ->
                                 restStack
-                                |> Stack.push (BlockStatement(index, subIndex))
-                                |> Stack.push (SimpleStatement 0)
+                                |> Stack.push (StatementIndexInBlock.BlockStatement(index, subIndex))
+                                |> Stack.push (StatementIndexInBlock.SimpleStatement 0)
                             | x ->
                                 failwithf "Expected SimpleStatement index in state.LabelState.Stack but %A" x
                     }
@@ -194,7 +195,7 @@ module AbstractEngine =
                 let headStack = List.head stack
                 let currentStatement =
                     match headStack with
-                    | SimpleStatement index, block ->
+                    | StatementIndexInBlock.SimpleStatement index, block ->
                         Ok block.[index]
                     | _ ->
                         sprintf "First element in stack must be SimpleStatement"
