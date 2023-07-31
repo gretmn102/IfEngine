@@ -134,6 +134,7 @@ type State<'Text, 'LabelName, 'Addon> =
         Vars: Vars
     }
 
+[<RequireQualifiedAccess>]
 type AbstractEngine<'Text, 'LabelName, 'Addon, 'Arg> =
     | Print of 'Text * (unit -> AbstractEngine<'Text, 'LabelName, 'Addon, 'Arg>)
     | Choices of 'Text * string list * (int -> AbstractEngine<'Text, 'LabelName, 'Addon, 'Arg>)
@@ -156,8 +157,8 @@ module AbstractEngine =
                                 |> StackStatements.toStack
                         }
                 }
-            NextState (changeState state)
-        | None -> End
+            AbstractEngine.NextState (changeState state)
+        | None -> AbstractEngine.End
 
     let down subIndex (block: Block<'Text, 'LabelName, 'Addon>) stack state =
         if List.isEmpty block then
@@ -176,11 +177,11 @@ module AbstractEngine =
                                 failwithf "Expected SimpleStatement index in state.LabelState.Stack but %A" x
                     }
             }
-            |> NextState
+            |> AbstractEngine.NextState
 
     let interp (addon, handleCustomStatement) (scenario: Scenario<'Text, 'LabelName, 'Addon>) (state: State<'Text, 'LabelName, 'Addon>) =
         if List.isEmpty state.LabelState.Stack then
-            Ok End
+            Ok AbstractEngine.End
         else
             match LabelState.restoreBlock handleCustomStatement scenario state.LabelState with
             | Ok stack ->
@@ -212,11 +213,11 @@ module AbstractEngine =
                                         Stack.createSimpleStatement 0
                                 LabelState.create labelName stack
                         }
-                        |> NextState
+                        |> AbstractEngine.NextState
 
                     | Menu(caption, xs) ->
                         let labels = xs |> List.map fst
-                        Choices(caption, labels, fun i ->
+                        AbstractEngine.Choices(caption, labels, fun i ->
                             let _, body = xs.[i]
                             down i body
                         )
@@ -228,12 +229,12 @@ module AbstractEngine =
                             down 1 elseBody
 
                     | Say x ->
-                        Print(x, fun () ->
+                        AbstractEngine.Print(x, fun () ->
                             next id stack
                         )
 
                     | Addon addonArg ->
-                        AddonAct(addonArg, fun res ->
+                        AbstractEngine.AddonAct(addonArg, fun res ->
                             addon state stack res addonArg
                         )
 

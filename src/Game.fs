@@ -19,7 +19,7 @@ type Msg<'CustomStatement, 'CustomStatementArg> =
 let update interp scenarioInit (msg: Msg<'Addon, 'Arg>) (state: State<'Text, 'LabelName, 'Addon, 'Arg>) =
     let nextState x =
         let rec nextState gameState = function
-            | Interpreter.NextState newGameState ->
+            | Interpreter.AbstractEngine.NextState newGameState ->
                 nextState newGameState (interp newGameState)
             | game ->
                 { state with
@@ -30,27 +30,27 @@ let update interp scenarioInit (msg: Msg<'Addon, 'Arg>) (state: State<'Text, 'La
     match msg with
     | Next ->
         match state.Game with
-        | Interpreter.Print(_, f) ->
+        | Interpreter.AbstractEngine.Print(_, f) ->
             nextState (f ())
-        | Interpreter.NextState x ->
+        | Interpreter.AbstractEngine.NextState x ->
             failwith "nextNextState"
-        | Interpreter.End
-        | Interpreter.Choices _
-        | Interpreter.AddonAct _ ->
+        | Interpreter.AbstractEngine.End
+        | Interpreter.AbstractEngine.Choices _
+        | Interpreter.AbstractEngine.AddonAct _ ->
             state
     | Choice i ->
         match state.Game with
-        | Interpreter.Choices(_, _, f)->
+        | Interpreter.AbstractEngine.Choices(_, _, f)->
             nextState (f i)
-        | Interpreter.Print(_, f) ->
+        | Interpreter.AbstractEngine.Print(_, f) ->
             nextState (f ())
-        | Interpreter.NextState x ->
+        | Interpreter.AbstractEngine.NextState x ->
             failwith "choiceNextState"
-        | Interpreter.End
-        | Interpreter.AddonAct _ -> state
+        | Interpreter.AbstractEngine.End
+        | Interpreter.AbstractEngine.AddonAct _ -> state
     | HandleCustomState handler ->
         match state.Game with
-        | Interpreter.AddonAct(customStatement, f) ->
+        | Interpreter.AbstractEngine.AddonAct(customStatement, f) ->
             f (handler customStatement)
             |> nextState
         | x ->
