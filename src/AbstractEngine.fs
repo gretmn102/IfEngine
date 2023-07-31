@@ -12,8 +12,8 @@ type AbstractEngine<'Text, 'LabelName, 'Addon, 'Arg> =
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module AbstractEngine =
-    let next changeState (stack: StackStatements<'Text, 'LabelName, 'Addon>) state =
-        match StackStatements.next stack with
+    let next changeState (stack: BlockStack<'Text, 'LabelName, 'Addon>) state =
+        match BlockStack.next stack with
         | Some stackStatements ->
             let state =
                 { state with
@@ -21,7 +21,7 @@ module AbstractEngine =
                         { state.LabelState with
                             Stack =
                                 stackStatements
-                                |> StackStatements.toStack
+                                |> BlockStack.toStack
                         }
                 }
             AbstractEngine.NextState (changeState state)
@@ -52,7 +52,7 @@ module AbstractEngine =
         else
             match LabelState.restoreBlock handleCustomStatement scenario state.LabelState with
             | Ok stack ->
-                let next changeState (stack: StackStatements<'Text, 'LabelName, 'Addon>) =
+                let next changeState (stack: BlockStack<'Text, 'LabelName, 'Addon>) =
                     next changeState stack state
 
                 let down subIndex (block: Block<'Text, 'LabelName, 'Addon>) =

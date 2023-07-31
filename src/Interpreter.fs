@@ -32,13 +32,13 @@ module Stack =
     let push indexStatement (stack: Stack) : Stack =
         indexStatement :: stack
 
-type StackStatements<'Text, 'LabelName, 'Addon> =
+type BlockStack<'Text, 'LabelName, 'Addon> =
     (StatementIndexInBlock * Block<'Text, 'LabelName, 'Addon>) list
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
-module StackStatements =
-    let ofStack handleCustomStatement (startedBlock: Block<'Text, 'LabelName, 'Addon>) (stack: Stack) : Result<StackStatements<'Text, 'LabelName, 'Addon>, _> =
+module BlockStack =
+    let ofStack handleCustomStatement (startedBlock: Block<'Text, 'LabelName, 'Addon>) (stack: Stack) : Result<BlockStack<'Text, 'LabelName, 'Addon>, _> =
         let get (index: StatementIndexInBlock) (block: Block<'Text, 'LabelName, 'Addon>) =
             match index with
             | StatementIndexInBlock.BlockStatement(index, subIndex) ->
@@ -86,11 +86,11 @@ module StackStatements =
 
             f startedBlock [] (List.rev stack)
 
-    let toStack (stackStatements: StackStatements<'Text, 'LabelName, 'Addon>) : Stack =
+    let toStack (stackStatements: BlockStack<'Text, 'LabelName, 'Addon>) : Stack =
         List.map fst stackStatements
 
-    let next (stackStatements: StackStatements<'Text, 'LabelName, 'Addon>) =
-        let rec next (stack: StackStatements<'Text, 'LabelName, 'Addon>) =
+    let next (stackStatements: BlockStack<'Text, 'LabelName, 'Addon>) =
+        let rec next (stack: BlockStack<'Text, 'LabelName, 'Addon>) =
             match stack with
             | (index, block)::restStack ->
                 let index =
@@ -125,7 +125,7 @@ module LabelState =
     let restoreBlock handleCustomStatement (scenario: Scenario<'Text, 'LabelName, 'Addon>) (labelState: LabelState<'LabelName>) =
         match Map.tryFind labelState.Label scenario with
         | Some (_, block) ->
-            StackStatements.ofStack handleCustomStatement block labelState.Stack
+            BlockStack.ofStack handleCustomStatement block labelState.Stack
         | None ->
             Error (sprintf "Not found %A label" labelState.Label)
 

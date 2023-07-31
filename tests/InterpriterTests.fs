@@ -41,11 +41,11 @@ let InterpTests =
                     StatementIndexInBlock.SimpleStatement 10
                 ]
                 |> List.rev
-                |> StackStatements.ofStack (fun subIndex x -> failwithf "handleCustomStatement %A" x) mock
+                |> BlockStack.ofStack (fun subIndex x -> failwithf "handleCustomStatement %A" x) mock
                 |> Result.map (
-                    StackStatements.next
+                    BlockStack.next
                     >> Option.get
-                    >> StackStatements.toStack
+                    >> BlockStack.toStack
                     >> List.rev
                 )
 
