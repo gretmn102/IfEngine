@@ -141,102 +141,105 @@ type AbstractEngine<'Text, 'LabelName, 'Addon, 'Arg> =
     | AddonAct of 'Addon * ('Arg -> AbstractEngine<'Text, 'LabelName, 'Addon, 'Arg>)
     | NextState of State<'Text, 'LabelName, 'Addon>
 
-let next changeState (stack: StackStatements<'Text, 'LabelName, 'Addon>) state =
-    match StackStatements.next stack with
-    | Some stackStatements ->
-        let state =
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+[<RequireQualifiedAccess>]
+module AbstractEngine =
+    let next changeState (stack: StackStatements<'Text, 'LabelName, 'Addon>) state =
+        match StackStatements.next stack with
+        | Some stackStatements ->
+            let state =
+                { state with
+                    LabelState =
+                        { state.LabelState with
+                            Stack =
+                                stackStatements
+                                |> StackStatements.toStack
+                        }
+                }
+            NextState (changeState state)
+        | None -> End
+
+    let down subIndex (block: Block<'Text, 'LabelName, 'Addon>) stack state =
+        if List.isEmpty block then
+            next id stack state
+        else
             { state with
                 LabelState =
                     { state.LabelState with
                         Stack =
-                            stackStatements
-                            |> StackStatements.toStack
+                            match state.LabelState.Stack with
+                            | SimpleStatement index::restStack ->
+                                restStack
+                                |> Stack.push (BlockStatement(index, subIndex))
+                                |> Stack.push (SimpleStatement 0)
+                            | x ->
+                                failwithf "Expected SimpleStatement index in state.LabelState.Stack but %A" x
                     }
             }
-        NextState (changeState state)
-    | None -> End
+            |> NextState
 
-let down subIndex (block: Block<'Text, 'LabelName, 'Addon>) stack state =
-    if List.isEmpty block then
-        next id stack state
-    else
-        { state with
-            LabelState =
-                { state.LabelState with
-                    Stack =
-                        match state.LabelState.Stack with
-                        | SimpleStatement index::restStack ->
-                            restStack
-                            |> Stack.push (BlockStatement(index, subIndex))
-                            |> Stack.push (SimpleStatement 0)
-                        | x ->
-                            failwithf "Expected SimpleStatement index in state.LabelState.Stack but %A" x
-                }
-        }
-        |> NextState
+    let interp (addon, handleCustomStatement) (scenario: Scenario<'Text, 'LabelName, 'Addon>) (state: State<'Text, 'LabelName, 'Addon>) =
+        if List.isEmpty state.LabelState.Stack then
+            Ok End
+        else
+            match LabelState.restoreBlock handleCustomStatement scenario state.LabelState with
+            | Ok stack ->
+                let next changeState (stack: StackStatements<'Text, 'LabelName, 'Addon>) =
+                    next changeState stack state
 
-let interp (addon, handleCustomStatement) (scenario: Scenario<'Text, 'LabelName, 'Addon>) (state: State<'Text, 'LabelName, 'Addon>) =
-    if List.isEmpty state.LabelState.Stack then
-        Ok End
-    else
-        match LabelState.restoreBlock handleCustomStatement scenario state.LabelState with
-        | Ok stack ->
-            let next changeState (stack: StackStatements<'Text, 'LabelName, 'Addon>) =
-                next changeState stack state
+                let down subIndex (block: Block<'Text, 'LabelName, 'Addon>) =
+                    down subIndex block stack state
 
-            let down subIndex (block: Block<'Text, 'LabelName, 'Addon>) =
-                down subIndex block stack state
+                let headStack = List.head stack
+                let currentStatement =
+                    match headStack with
+                    | SimpleStatement index, block ->
+                        Ok block.[index]
+                    | _ ->
+                        sprintf "First element in stack must be SimpleStatement"
+                        |> Error
 
-            let headStack = List.head stack
-            let currentStatement =
-                match headStack with
-                | SimpleStatement index, block ->
-                    Ok block.[index]
-                | _ ->
-                    sprintf "First element in stack must be SimpleStatement"
-                    |> Error
-
-            match currentStatement with
-            | Ok currentStatement ->
                 match currentStatement with
-                | Jump labelName ->
-                    { state with
-                        LabelState =
-                            let stack =
-                                if List.isEmpty <| snd scenario.[labelName] then
-                                    Stack.empty
-                                else
-                                    Stack.createSimpleStatement 0
-                            LabelState.create labelName stack
-                    }
-                    |> NextState
+                | Ok currentStatement ->
+                    match currentStatement with
+                    | Jump labelName ->
+                        { state with
+                            LabelState =
+                                let stack =
+                                    if List.isEmpty <| snd scenario.[labelName] then
+                                        Stack.empty
+                                    else
+                                        Stack.createSimpleStatement 0
+                                LabelState.create labelName stack
+                        }
+                        |> NextState
 
-                | Menu(caption, xs) ->
-                    let labels = xs |> List.map fst
-                    Choices(caption, labels, fun i ->
-                        let _, body = xs.[i]
-                        down i body
-                    )
+                    | Menu(caption, xs) ->
+                        let labels = xs |> List.map fst
+                        Choices(caption, labels, fun i ->
+                            let _, body = xs.[i]
+                            down i body
+                        )
 
-                | If(pred, thenBody, elseBody) ->
-                    if pred state.Vars then
-                        down 0 thenBody
-                    else
-                        down 1 elseBody
+                    | If(pred, thenBody, elseBody) ->
+                        if pred state.Vars then
+                            down 0 thenBody
+                        else
+                            down 1 elseBody
 
-                | Say x ->
-                    Print(x, fun () ->
-                        next id stack
-                    )
+                    | Say x ->
+                        Print(x, fun () ->
+                            next id stack
+                        )
 
-                | Addon addonArg ->
-                    AddonAct(addonArg, fun res ->
-                        addon state stack res addonArg
-                    )
+                    | Addon addonArg ->
+                        AddonAct(addonArg, fun res ->
+                            addon state stack res addonArg
+                        )
 
-                | ChangeVars f ->
-                    stack
-                    |> next (fun state -> { state with Vars = f state.Vars })
-                |> Ok
+                    | ChangeVars f ->
+                        stack
+                        |> next (fun state -> { state with Vars = f state.Vars })
+                    |> Ok
+                | Error err -> Error err
             | Error err -> Error err
-        | Error err -> Error err

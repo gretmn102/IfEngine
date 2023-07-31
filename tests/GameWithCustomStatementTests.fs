@@ -67,11 +67,11 @@ let InterpreterTests =
 
             let interp gameState =
                 gameState
-                |> interp
+                |> AbstractEngine.interp
                     ((fun state stack (customStatementArg: CustomStatementArg) customStatement ->
                         match customStatement with
                         | CustomStatement blocs ->
-                            down customStatementArg blocs.[customStatementArg] stack state
+                            AbstractEngine.down customStatementArg blocs.[customStatementArg] stack state
                     ),
                     (fun subIndex customStatement ->
                         match customStatement with

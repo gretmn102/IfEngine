@@ -91,7 +91,7 @@ let InterpreterTests =
 
             let interp gameState =
                 gameState
-                |> interp
+                |> AbstractEngine.interp
                     ((fun state isWin addon ->
                         failwith "addon not implemented"
                     ),
