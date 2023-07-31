@@ -134,11 +134,11 @@ type State<'Text, 'LabelName, 'Addon> =
         Vars: Vars
     }
 
-type Command<'Text, 'LabelName, 'Addon, 'Arg> =
-    | Print of 'Text * (unit -> Command<'Text, 'LabelName, 'Addon, 'Arg>)
-    | Choices of 'Text * string list * (int -> Command<'Text, 'LabelName, 'Addon, 'Arg>)
+type AbstractEngine<'Text, 'LabelName, 'Addon, 'Arg> =
+    | Print of 'Text * (unit -> AbstractEngine<'Text, 'LabelName, 'Addon, 'Arg>)
+    | Choices of 'Text * string list * (int -> AbstractEngine<'Text, 'LabelName, 'Addon, 'Arg>)
     | End
-    | AddonAct of 'Addon * ('Arg -> Command<'Text, 'LabelName, 'Addon, 'Arg>)
+    | AddonAct of 'Addon * ('Arg -> AbstractEngine<'Text, 'LabelName, 'Addon, 'Arg>)
     | NextState of State<'Text, 'LabelName, 'Addon>
 
 let next changeState (stack: StackStatements<'Text, 'LabelName, 'Addon>) state =

@@ -2,7 +2,7 @@ module IfEngine.Game
 
 type State<'Text, 'LabelName, 'Addon, 'Arg> =
     {
-        Game: Interpreter.Command<'Text, 'LabelName, 'Addon, 'Arg>
+        Game: Interpreter.AbstractEngine<'Text, 'LabelName, 'Addon, 'Arg>
         GameState: Interpreter.State<'Text, 'LabelName, 'Addon>
 
         SavedGameState: Interpreter.State<'Text, 'LabelName, 'Addon>
