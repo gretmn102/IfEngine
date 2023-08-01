@@ -19,8 +19,8 @@ type Msg<'CustomStatement, 'CustomStatementArg> =
 let update interp scenarioInit (msg: Msg<'Addon, 'Arg>) (state: State<'Text, 'LabelName, 'Addon, 'Arg>) =
     let nextState x =
         let rec nextState gameState = function
-            | AbstractEngine.NextState newGameState ->
-                nextState newGameState (interp newGameState)
+            | AbstractEngine.NextState(newGameState, next) ->
+                nextState newGameState (next ())
             | game ->
                 { state with
                     GameState = gameState
@@ -32,7 +32,7 @@ let update interp scenarioInit (msg: Msg<'Addon, 'Arg>) (state: State<'Text, 'La
         match state.Game with
         | AbstractEngine.Print(_, f) ->
             nextState (f ())
-        | AbstractEngine.NextState x ->
+        | AbstractEngine.NextState(x, _) ->
             failwith "nextNextState"
         | AbstractEngine.End
         | AbstractEngine.Choices _
@@ -44,7 +44,7 @@ let update interp scenarioInit (msg: Msg<'Addon, 'Arg>) (state: State<'Text, 'La
             nextState (f i)
         | AbstractEngine.Print(_, f) ->
             nextState (f ())
-        | AbstractEngine.NextState x ->
+        | AbstractEngine.NextState(x, _) ->
             failwith "choiceNextState"
         | AbstractEngine.End
         | AbstractEngine.AddonAct _ -> state
