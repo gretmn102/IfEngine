@@ -134,3 +134,15 @@ type State<'Text, 'LabelName, 'Addon> =
         LabelState: NamedStack<'LabelName>
         Vars: Vars
     }
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+[<RequireQualifiedAccess>]
+module State =
+    let init beginLocation initVars =
+        {
+            LabelState =
+                NamedStack.create
+                    beginLocation
+                    (Stack.createSimpleStatement 0)
+
+            Vars = initVars
+        }

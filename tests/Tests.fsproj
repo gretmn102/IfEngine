@@ -14,6 +14,7 @@
     <Compile Include="Utils.fs" />
     <Compile Include="InterpriterTests.fs" />
     <Compile Include="GameWithCustomStatementTests.fs" />
+    <Compile Include="EngineTests.fs" />
     <Compile Include="Tests.fs" />
   </ItemGroup>
   <Import Project="..\.paket\Paket.Restore.targets" />
