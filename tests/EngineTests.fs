@@ -10,6 +10,38 @@ open IfEngine.Engine
 
 open Utils
 
+// todo: replace `Utils`
+module Utils =
+    let equalPrint exp (cmd: OutputMsg<'Text, 'CustomStatement>) =
+        match cmd with
+        | OutputMsg.Print(text) ->
+            Assert.Equal("", exp, text)
+        | x ->
+            failwithf "expected Print %A but:\n%A" exp x
+
+    let equalMenu exp (cmd: OutputMsg<'Text, 'CustomStatement>) =
+        match cmd with
+        | OutputMsg.Choices(text, selects) ->
+            Assert.Equal("", exp, (text, selects))
+        | x ->
+            failwithf "expected Menu %A\nbut:\n%A" exp x
+
+    let equalEnd (cmd: OutputMsg<'Text, 'CustomStatement>) =
+        match cmd with
+        | OutputMsg.End -> ()
+        | x ->
+            failwithf "expected End but:\n%A" x
+
+    let equalCustomStatement (exp: 'CustomStatement) eq (cmd: OutputMsg<'Text, 'CustomStatement>) =
+        match cmd with
+        | OutputMsg.CustomStatement(customStatement) ->
+            if not <| eq exp customStatement then
+                failwithf "expected: %A\nactual: %A" exp customStatement
+        | x ->
+            failwithf "expected Menu %A\nbut:\n%A" exp x
+
+open Utils
+
 module SimpleTestGame =
     type CustomStatement = unit
 
@@ -137,4 +169,180 @@ module SimpleTestGame =
 
                 let engine = Engine.update InputMsg.Next engine |> Result.get
                 Assert.Equal("", OutputMsg.End, Engine.getCurrentOutputMsg engine)
+        ]
+
+module TestGameWithCustomStatement =
+    type FightParams =
+        {
+            EnemyName: string
+            EnemyStrength: int
+        }
+
+    type Text = string
+
+    type Location =
+        | Crossroad
+        | AngryForest
+        | Swamp
+
+    [<RequireQualifiedAccess>]
+    type CustomStatement =
+        | Fight of FightParams * winBody:Block<Text, Location, CustomStatement> * loseBody:Block<Text, Location, CustomStatement>
+    [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+    [<RequireQualifiedAccess>]
+    module CustomStatement =
+        let equals (l: CustomStatement) (r: CustomStatement) =
+            match r, l with
+            | CustomStatement.Fight(l, _, _), CustomStatement.Fight(r, _, _) ->
+                l = r
+
+    [<RequireQualifiedAccess>]
+    type CustomStatementArg =
+        | Win
+        | Lose
+
+    let fight enemy winBody loseBody =
+        Addon(
+            CustomStatement.Fight(enemy, winBody, loseBody)
+        )
+
+    let scenario, vars =
+        let vars = Map.empty
+
+        [
+            label Crossroad [
+                menu "Ты стоишь на развилке двух дорог." [
+                    choice "пойти в злой лес" [ jump AngryForest ]
+                    choice "Пойти на болото" [ jump Swamp ]
+                ]
+            ]
+
+            label AngryForest [
+                menu "В лесу ты встречаешь крокодила." [
+                    choice "Атаковать" [
+                        fight
+                            { EnemyName = "Крокодил"; EnemyStrength = 10 }
+                            [
+                                menu "Ты победил крокодила!" [
+                                    choice "Вернуться на развилку" [ jump Crossroad ]
+                                ]
+                            ]
+                            [
+                                say "Крокодил победил тебя..."
+                            ]
+                    ]
+                    choice "Сбежать на развилку" [ jump Crossroad ]
+                ]
+            ]
+
+            label Swamp [
+                menu "В болоте ты встречаешь оленя." [
+                    choice "Атаковать" [
+                        fight
+                            { EnemyName = "Олень"; EnemyStrength = 5 }
+                            [
+                                menu "Ты победил оленя!" [
+                                    choice "Вернуться на развилку" [ jump Crossroad ]
+                                ]
+                            ]
+                            [
+                                say "Олень победил тебя..."
+                            ]
+                    ]
+                    choice "Сбежать на развилку" [ jump Crossroad ]
+                ]
+            ]
+        ]
+        |> List.map (fun (labelName, body) -> labelName, (labelName, body))
+        |> Map.ofList
+        |> fun scenario ->
+            (scenario: Scenario<_, _, CustomStatement>), vars
+
+    [<Tests>]
+    let tests =
+        testList "TestGameWithCustomStatement" [
+            testCase "base" <| fun () ->
+                let customStatementHandler : CustomStatementHandler<Text, Location, CustomStatement, CustomStatementArg> =
+                    {
+                        Handle =
+                            fun state blockStack customStatementArg customStatement continues ->
+                                match customStatement with
+                                | CustomStatement.Fight(fightParams, winBody, loseBody) ->
+                                    let index, block =
+                                        match customStatementArg with
+                                        | CustomStatementArg.Win -> 0, winBody
+                                        | CustomStatementArg.Lose -> 1, loseBody
+
+                                    AbstractEngine.down index block blockStack state continues
+
+                        RestoreBlockFromStack =
+                            fun index customStatement ->
+                                match customStatement with
+                                | CustomStatement.Fight(_, winBody, loseBody) ->
+                                    match index with
+                                    | 0 -> Ok winBody
+                                    | 1 -> Ok loseBody
+                                    | x ->
+                                        Error (sprintf "expected 0 or 1 but %d" x)
+                    }
+
+                let gameState = State.init Crossroad vars
+
+                let engine =
+                    Engine.create
+                        customStatementHandler
+                        scenario
+                        gameState
+                    |> Result.get
+
+                let exp =
+                    "Ты стоишь на развилке двух дорог.", [
+                        "пойти в злой лес"
+                        "Пойти на болото"
+                    ]
+                equalMenu exp (Engine.getCurrentOutputMsg engine)
+
+                let engine = Engine.update (InputMsg.Choice 0) engine |> Result.get // в злой лес
+                let exp =
+                    "В лесу ты встречаешь крокодила.", [
+                        "Атаковать"
+                        "Сбежать на развилку"
+                    ]
+                equalMenu exp (Engine.getCurrentOutputMsg engine)
+
+                let engine = Engine.update (InputMsg.Choice 0) engine |> Result.get // атаковать
+                let exp =
+                    CustomStatement.Fight(
+                        { EnemyName = "Крокодил"; EnemyStrength = 10 }, [], []
+                    )
+                Engine.getCurrentOutputMsg engine
+                |> equalCustomStatement exp CustomStatement.equals
+
+                do // lose
+                    let engine =
+                        Engine.update
+                            (InputMsg.HandleCustomStatement (fun _ -> CustomStatementArg.Lose))
+                            engine |> Result.get
+                    let exp =
+                        "Крокодил победил тебя..."
+                    Engine.getCurrentOutputMsg engine
+                    |> equalPrint exp
+
+                    let engine =
+                        Engine.update
+                            InputMsg.Next
+                            engine |> Result.get
+                    Engine.getCurrentOutputMsg engine
+                    |> equalEnd
+
+                let engine =
+                    Engine.update
+                        (InputMsg.HandleCustomStatement (fun _ -> CustomStatementArg.Win))
+                        engine |> Result.get
+                let exp =
+                    "Ты победил крокодила!", [
+                        "Вернуться на развилку"
+                    ]
+                Engine.getCurrentOutputMsg engine
+                |> equalMenu exp
         ]
