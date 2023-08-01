@@ -321,7 +321,7 @@ module TestGameWithCustomStatement =
                 do // lose
                     let engine =
                         Engine.update
-                            (InputMsg.HandleCustomStatement (fun _ -> CustomStatementArg.Lose))
+                            (InputMsg.HandleCustomStatement CustomStatementArg.Lose)
                             engine |> Result.get
                     let exp =
                         "Крокодил победил тебя..."
@@ -337,7 +337,7 @@ module TestGameWithCustomStatement =
 
                 let engine =
                     Engine.update
-                        (InputMsg.HandleCustomStatement (fun _ -> CustomStatementArg.Win))
+                        (InputMsg.HandleCustomStatement CustomStatementArg.Win)
                         engine |> Result.get
                 let exp =
                     "Ты победил крокодила!", [

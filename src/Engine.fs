@@ -1,9 +1,9 @@
 module IfEngine.Engine
 [<RequireQualifiedAccess>]
-type InputMsg<'CustomStatement, 'CustomStatementArg> =
+type InputMsg<'CustomStatementArg> =
     | Next
     | Choice of int
-    | HandleCustomStatement of ('CustomStatement -> 'CustomStatementArg)
+    | HandleCustomStatement of 'CustomStatementArg
 
 [<RequireQualifiedAccess>]
 type OutputMsg<'Text, 'CustomStatement> =
@@ -77,7 +77,7 @@ module Engine =
         OutputMsg.ofAbstractEngine engine.AbstractEngine
 
     let update
-        (msg: InputMsg<'CustomStatement, 'CustomStatementArg>)
+        (msg: InputMsg<'CustomStatementArg>)
         (engine: Engine<'Text, 'Label, 'CustomStatement, 'CustomStatementArg>)
         : Result<Engine<'Text, 'Label, 'CustomStatement, 'CustomStatementArg>, string> =
 
@@ -117,10 +117,10 @@ module Engine =
             | AbstractEngine.AddonAct _ ->
                 Error (sprintf "Next —> Choices but %A" engine.AbstractEngine)
 
-        | InputMsg.HandleCustomStatement handler ->
+        | InputMsg.HandleCustomStatement customStatementArg ->
             match engine.AbstractEngine with
-            | AbstractEngine.AddonAct(customStatement, f) ->
-                f (handler customStatement)
+            | AbstractEngine.AddonAct(_, f) ->
+                f customStatementArg
                 |> nextState
             | x ->
                 Error (sprintf "Next —> CustomStatement but %A" x)
