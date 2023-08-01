@@ -12,7 +12,7 @@ type AbstractEngine<'Text, 'LabelName, 'Addon, 'Arg> =
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module AbstractEngine =
-    let next changeState (stack: BlockStack<'Text, 'LabelName, 'Addon>) state =
+    let next (stack: BlockStack<'Text, 'LabelName, 'Addon>) state =
         match BlockStack.next stack with
         | Some stackStatements ->
             let state =
@@ -24,12 +24,12 @@ module AbstractEngine =
                                 |> BlockStack.toStack
                         }
                 }
-            AbstractEngine.NextState (changeState state)
+            AbstractEngine.NextState state
         | None -> AbstractEngine.End
 
     let down subIndex (block: Block<'Text, 'LabelName, 'Addon>) stack state =
         if List.isEmpty block then
-            next id stack state
+            next stack state
         else
             { state with
                 LabelState =
@@ -52,9 +52,6 @@ module AbstractEngine =
         else
             match NamedStack.restoreBlock handleCustomStatement scenario state.LabelState with
             | Ok stack ->
-                let next changeState (stack: BlockStack<'Text, 'LabelName, 'Addon>) =
-                    next changeState stack state
-
                 let down subIndex (block: Block<'Text, 'LabelName, 'Addon>) =
                     down subIndex block stack state
 
@@ -97,7 +94,7 @@ module AbstractEngine =
 
                     | Say x ->
                         AbstractEngine.Print(x, fun () ->
-                            next id stack
+                            next stack state
                         )
 
                     | Addon addonArg ->
@@ -106,8 +103,9 @@ module AbstractEngine =
                         )
 
                     | ChangeVars f ->
-                        stack
-                        |> next (fun state -> { state with Vars = f state.Vars })
+                        let state =
+                            { state with Vars = f state.Vars }
+                        next stack state
                     |> Ok
                 | Error err -> Error err
             | Error err -> Error err
