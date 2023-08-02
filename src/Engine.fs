@@ -33,17 +33,10 @@ module OutputMsg =
         | AbstractEngine.NextState(_, _) ->
             failwith "NextState is not implemented"
 
-type Engine<'Text, 'Label, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput> =
-    {
-        AbstractEngine: AbstractEngine<'Text, 'Label, 'CustomStatement, 'CustomStatementArg>
-        GameState: State<'Text, 'Label, 'CustomStatement>
-        CustomStatementTransformer: CustomStatementTransformer<'CustomStatement, 'CustomStatementOutput>
-    }
-
 type CustomStatementHandler<'Text, 'Label, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput> =
     {
-        Handle: State<'Text,'Label,'CustomStatement> -> BlockStack<'Text,'Label,'CustomStatement> -> 'CustomStatementArg -> 'CustomStatement -> (State<'Text,'Label,'CustomStatement> -> AbstractEngine<'Text,'Label,'CustomStatement,'CustomStatementArg>) -> AbstractEngine<'Text,'Label,'CustomStatement,'CustomStatementArg>
-        RestoreBlockFromStack: int -> 'CustomStatement -> Result<Types.Block<'Text,'Label,'CustomStatement>, string>
+        Handle: AbstractEngine.CustomStatementHandle<'Text,'Label,'CustomStatement, 'CustomStatementArg>
+        RestoreBlockFromStack: AbstractEngine.CustomStatementRestore<'Text,'Label,'CustomStatement>
         Transformer: 'CustomStatement -> 'CustomStatementOutput
     }
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
@@ -62,6 +55,12 @@ module CustomStatementHandler =
                     failwithf "CustomStatementHandler.Transformer Not implemented"
         }
 
+type Engine<'Text, 'Label, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput> =
+    {
+        AbstractEngine: AbstractEngine<'Text, 'Label, 'CustomStatement, 'CustomStatementArg>
+        GameState: State<'Text, 'Label, 'CustomStatement>
+        CustomStatementTransformer: CustomStatementTransformer<'CustomStatement, 'CustomStatementOutput>
+    }
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module Engine =

@@ -1,14 +1,22 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <OtherFlags>--test:GraphBasedChecking</OtherFlags>
+    <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="*.fsproj; *.fs; *.js;" Exclude="**\*.fs.js" PackagePath="fable\" />
+    <Compile Include="Types.fsi" />
     <Compile Include="Types.fs" />
+    <Compile Include="Interpreter.fsi" />
     <Compile Include="Interpreter.fs" />
+    <Compile Include="AbstractEngine.fsi" />
     <Compile Include="AbstractEngine.fs" />
+    <Compile Include="Engine.fsi" />
     <Compile Include="Engine.fs" />
+    <Compile Include="Game.fsi" />
     <Compile Include="Game.fs" />
+    <Compile Include="Utils.fsi" />
     <Compile Include="Utils.fs" />
   </ItemGroup>
   <Import Project="..\.paket\Paket.Restore.targets" />

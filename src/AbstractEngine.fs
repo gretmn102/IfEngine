@@ -13,7 +13,18 @@ type AbstractEngine<'Text, 'LabelName, 'Addon, 'Arg> =
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module AbstractEngine =
-    let next (stack: BlockStack<'Text, 'LabelName, 'Addon>) state continues =
+    type CustomStatementHandle<'Text,'Label,'CustomStatement, 'CustomStatementArg> =
+        (State<'Text,'Label,'CustomStatement> ->
+        BlockStack<'Text,'Label,'CustomStatement> ->
+        'CustomStatementArg ->
+        'CustomStatement ->
+        (State<'Text,'Label,'CustomStatement> -> AbstractEngine<'Text,'Label,'CustomStatement,'CustomStatementArg>)
+        -> AbstractEngine<'Text,'Label,'CustomStatement,'CustomStatementArg>)
+
+    type CustomStatementRestore<'Text,'Label,'CustomStatement> =
+        int -> 'CustomStatement -> Result<Block<'Text,'Label,'CustomStatement>, string>
+
+    let next (stack: BlockStack<'Text,'LabelName,'Addon>) (state: State<'Text,'LabelName,'Addon>) continues =
         match BlockStack.next stack with
         | Some stackStatements ->
             let state =
@@ -28,7 +39,7 @@ module AbstractEngine =
             AbstractEngine.NextState(state, fun () -> continues state)
         | None -> AbstractEngine.End
 
-    let down subIndex (block: Block<'Text, 'LabelName, 'Addon>) stack state continues =
+    let down subIndex (block: Block<'Text, 'LabelName, 'Addon>) (stack: BlockStack<'Text,'LabelName,'Addon>) state continues =
         if List.isEmpty block then
             next stack state continues
         else
@@ -48,7 +59,11 @@ module AbstractEngine =
                 }
             AbstractEngine.NextState(state, fun () -> continues state)
 
-    let rec interp (addon, handleCustomStatement) (scenario: Scenario<'Text, 'LabelName, 'Addon>) (state: State<'Text, 'LabelName, 'Addon>) =
+    let rec interp
+        (addon: CustomStatementHandle<'Text,'Label,'CustomStatement, 'CustomStatementArg>, handleCustomStatement: CustomStatementRestore<'Text,'Label,'CustomStatement>)
+        (scenario: Scenario<'Text, 'Label, 'CustomStatement>)
+        (state: State<'Text, 'Label, 'CustomStatement>) =
+
         let loop state =
             interp (addon, handleCustomStatement) scenario state
             |> Result.get
@@ -58,7 +73,7 @@ module AbstractEngine =
         else
             match NamedStack.restoreBlock handleCustomStatement scenario state.LabelState with
             | Ok stack ->
-                let stepInto subIndex (block: Block<'Text, 'LabelName, 'Addon>) =
+                let stepInto subIndex (block: Block<'Text, 'Label, 'CustomStatement>) =
                     down subIndex block stack state (fun state ->
                         loop state
                     )
