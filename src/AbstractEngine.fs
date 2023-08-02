@@ -3,12 +3,12 @@ open IfEngine.Types
 open FsharpMyExtension.ResultExt
 
 [<RequireQualifiedAccess>]
-type AbstractEngine<'Text, 'Label, 'Addon, 'Arg> =
-    | Print of 'Text * (unit -> AbstractEngine<'Text, 'Label, 'Addon, 'Arg>)
-    | Choices of 'Text * string list * (int -> AbstractEngine<'Text, 'Label, 'Addon, 'Arg>)
+type AbstractEngine<'Text, 'Label, 'CustomStatement, 'Arg> =
+    | Print of 'Text * (unit -> AbstractEngine<'Text, 'Label, 'CustomStatement, 'Arg>)
+    | Choices of 'Text * string list * (int -> AbstractEngine<'Text, 'Label, 'CustomStatement, 'Arg>)
     | End
-    | AddonAct of 'Addon * ('Arg -> AbstractEngine<'Text, 'Label, 'Addon, 'Arg>)
-    | NextState of State<'Text, 'Label, 'Addon> * (unit -> AbstractEngine<'Text, 'Label, 'Addon, 'Arg>)
+    | AddonAct of 'CustomStatement * ('Arg -> AbstractEngine<'Text, 'Label, 'CustomStatement, 'Arg>)
+    | NextState of State<'Text, 'Label, 'CustomStatement> * (unit -> AbstractEngine<'Text, 'Label, 'CustomStatement, 'Arg>)
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
@@ -24,7 +24,7 @@ module AbstractEngine =
     type CustomStatementRestore<'Text,'Label,'CustomStatement> =
         int -> 'CustomStatement -> Result<Block<'Text,'Label,'CustomStatement>, string>
 
-    let next (stack: BlockStack<'Text,'Label,'Addon>) (state: State<'Text,'Label,'Addon>) continues =
+    let next (stack: BlockStack<'Text,'Label,'CustomStatement>) (state: State<'Text,'Label,'CustomStatement>) continues =
         match BlockStack.next stack with
         | Some stackStatements ->
             let state =
@@ -39,7 +39,7 @@ module AbstractEngine =
             AbstractEngine.NextState(state, fun () -> continues state)
         | None -> AbstractEngine.End
 
-    let down subIndex (block: Block<'Text, 'Label, 'Addon>) (stack: BlockStack<'Text,'Label,'Addon>) state continues =
+    let down subIndex (block: Block<'Text, 'Label, 'CustomStatement>) (stack: BlockStack<'Text,'Label,'CustomStatement>) state continues =
         if List.isEmpty block then
             next stack state continues
         else

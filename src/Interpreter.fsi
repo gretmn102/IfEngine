@@ -20,25 +20,25 @@ module Stack =
 
     val push: indexStatement: StatementIndexInBlock -> stack: Stack -> Stack
 
-type BlockStack<'Text,'Label,'Addon> =
-    (StatementIndexInBlock * Block<'Text,'Label,'Addon>) list
+type BlockStack<'Text,'Label,'CustomStatement> =
+    (StatementIndexInBlock * Block<'Text,'Label,'CustomStatement>) list
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module BlockStack =
     val ofStack:
         handleCustomStatement: (int ->
-                                 'Addon ->
-                                 Result<Block<'Text,'Label,'Addon>, string>) ->
-        startedBlock: Block<'Text,'Label,'Addon> ->
-        stack: Stack -> Result<BlockStack<'Text,'Label,'Addon>,string>
+                                 'CustomStatement ->
+                                 Result<Block<'Text,'Label,'CustomStatement>, string>) ->
+        startedBlock: Block<'Text,'Label,'CustomStatement> ->
+        stack: Stack -> Result<BlockStack<'Text,'Label,'CustomStatement>,string>
 
     val toStack:
-        stackStatements: BlockStack<'Text,'Label,'Addon> -> Stack
+        stackStatements: BlockStack<'Text,'Label,'CustomStatement> -> Stack
 
     val next:
-        stackStatements: BlockStack<'Text,'Label,'Addon> ->
-        (StatementIndexInBlock * Block<'Text,'Label,'Addon>) list option
+        stackStatements: BlockStack<'Text,'Label,'CustomStatement> ->
+        (StatementIndexInBlock * Block<'Text,'Label,'CustomStatement>) list option
 
 type NamedStack<'Label> =
     {
@@ -53,14 +53,14 @@ module NamedStack =
 
     val restoreBlock:
         handleCustomStatement: (int ->
-                                 'Addon ->
-                                 Result<Block<'Text,'Label,'Addon>, string>) ->
-        scenario: Scenario<'Text,'Label,'Addon> ->
+                                 'CustomStatement ->
+                                 Result<Block<'Text,'Label,'CustomStatement>, string>) ->
+        scenario: Scenario<'Text,'Label,'CustomStatement> ->
         labelState: NamedStack<'Label> ->
-        Result<BlockStack<'Text,'Label,'Addon>,string>
+        Result<BlockStack<'Text,'Label,'CustomStatement>,string>
         when 'Label: comparison
 
-type State<'Text,'Label,'Addon> =
+type State<'Text,'Label,'CustomStatement> =
     {
         LabelState: NamedStack<'Label>
         Vars: Vars

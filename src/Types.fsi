@@ -7,31 +7,31 @@ type Var =
 
 type Vars = Map<string,Var>
 
-type Block<'Text,'Label,'Addon> = Stmt<'Text,'Label,'Addon> list
+type Block<'Text,'Label,'CustomStatement> = Stmt<'Text,'Label,'CustomStatement> list
 
-and Choice<'Text,'Label,'Addon> = string * Block<'Text,'Label,'Addon>
+and Choice<'Text,'Label,'CustomStatement> = string * Block<'Text,'Label,'CustomStatement>
 
-and Choices<'Text,'Label,'Addon> = Choice<'Text,'Label,'Addon> list
+and Choices<'Text,'Label,'CustomStatement> = Choice<'Text,'Label,'CustomStatement> list
 
-and Stmt<'Text,'Label,'Addon> =
+and Stmt<'Text,'Label,'CustomStatement> =
     | Say of 'Text
     | Jump of 'Label
-    | Menu of 'Text * Choices<'Text,'Label,'Addon>
-    | If of (Vars -> bool) * Block<'Text,'Label,'Addon> * Block<'Text,'Label,'Addon>
+    | Menu of 'Text * Choices<'Text,'Label,'CustomStatement>
+    | If of (Vars -> bool) * Block<'Text,'Label,'CustomStatement> * Block<'Text,'Label,'CustomStatement>
     | ChangeVars of (Vars -> Vars)
-    | Addon of 'Addon
+    | Addon of 'CustomStatement
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module Stmt =
     val equals:
-      customEquals: ('Addon -> 'Addon -> bool) ->
-        leftStatement: Stmt<'Text,'Label,'Addon> ->
-        rightStatement: Stmt<'Text,'Label,'Addon> -> bool
+      customEquals: ('CustomStatement -> 'CustomStatement -> bool) ->
+        leftStatement: Stmt<'Text,'Label,'CustomStatement> ->
+        rightStatement: Stmt<'Text,'Label,'CustomStatement> -> bool
         when 'Text: equality and 'Label: equality
 
-type Label<'Text,'Label,'Addon> =
-    'Label * Block<'Text,'Label,'Addon>
+type Label<'Text,'Label,'CustomStatement> =
+    'Label * Block<'Text,'Label,'CustomStatement>
 
-type Scenario<'Text,'Label,'Addon when 'Label: comparison> =
-    Map<'Label,Label<'Text,'Label,'Addon>>
+type Scenario<'Text,'Label,'CustomStatement when 'Label: comparison> =
+    Map<'Label,Label<'Text,'Label,'CustomStatement>>

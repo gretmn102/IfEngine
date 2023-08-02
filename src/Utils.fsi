@@ -3,15 +3,15 @@ open IfEngine.Types
 
 val label:
     labelName: 'Label ->
-    stmts: Stmt<'Text,'Label,'Addon> list ->
-    Label<'Text,'Label,'Addon>
+    stmts: Stmt<'Text,'Label,'CustomStatement> list ->
+    Label<'Text,'Label,'CustomStatement>
 
 val jump: labelName: 'Label -> Stmt<'a,'Label,'b>
 
 val choice:
     caption: string ->
-    body: Stmt<'Text,'Label,'Addon> list ->
-    string * Stmt<'Text,'Label,'Addon> list
+    body: Stmt<'Text,'Label,'CustomStatement> list ->
+    string * Stmt<'Text,'Label,'CustomStatement> list
 
 val menu:
     caption: 'a ->

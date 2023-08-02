@@ -1,10 +1,10 @@
 module IfEngine.Game
 
-type State<'Text,'Label,'Addon,'Arg> =
+type State<'Text,'Label,'CustomStatement,'Arg> =
     {
-        Game: IfEngine.AbstractEngine<'Text,'Label,'Addon,'Arg>
-        GameState: IfEngine.State<'Text,'Label,'Addon>
-        SavedGameState: IfEngine.State<'Text,'Label,'Addon>
+        Game: IfEngine.AbstractEngine<'Text,'Label,'CustomStatement,'Arg>
+        GameState: IfEngine.State<'Text,'Label,'CustomStatement>
+        SavedGameState: IfEngine.State<'Text,'Label,'CustomStatement>
     }
 
 type Msg<'CustomStatement,'CustomStatementArg> =
@@ -16,8 +16,8 @@ type Msg<'CustomStatement,'CustomStatementArg> =
     | NewGame
 
 val update:
-    interp: (IfEngine.State<'Text,'Label,'Addon> -> IfEngine.AbstractEngine<'Text,'Label,'Addon,'Arg>) ->
-    scenarioInit: IfEngine.State<'Text,'Label,'Addon> ->
-    msg: Msg<'Addon,'Arg> ->
-    state: State<'Text,'Label,'Addon,'Arg> ->
-    State<'Text,'Label,'Addon,'Arg>
+    interp: (IfEngine.State<'Text,'Label,'CustomStatement> -> IfEngine.AbstractEngine<'Text,'Label,'CustomStatement,'Arg>) ->
+    scenarioInit: IfEngine.State<'Text,'Label,'CustomStatement> ->
+    msg: Msg<'CustomStatement,'Arg> ->
+    state: State<'Text,'Label,'CustomStatement,'Arg> ->
+    State<'Text,'Label,'CustomStatement,'Arg>
