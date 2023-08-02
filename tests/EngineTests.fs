@@ -197,6 +197,17 @@ module TestGameWithCustomStatement =
                 l = r
 
     [<RequireQualifiedAccess>]
+    type CustomStatementOutput =
+        | Fight of FightParams
+    [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+    [<RequireQualifiedAccess>]
+    module CustomStatementOutput =
+        let ofCustomStatement (customStatement: CustomStatement) =
+            match customStatement with
+            | CustomStatement.Fight(fightParams, _, _) ->
+                CustomStatementOutput.Fight(fightParams)
+
+    [<RequireQualifiedAccess>]
     type CustomStatementArg =
         | Win
         | Lose
@@ -262,7 +273,7 @@ module TestGameWithCustomStatement =
     let tests =
         testList "TestGameWithCustomStatement" [
             testCase "base" <| fun () ->
-                let customStatementHandler : CustomStatementHandler<Text, Location, CustomStatement, CustomStatementArg> =
+                let customStatementHandler : CustomStatementHandler<Text, Location, CustomStatement, CustomStatementArg, CustomStatementOutput> =
                     {
                         Handle =
                             fun state blockStack customStatementArg customStatement continues ->
@@ -284,6 +295,9 @@ module TestGameWithCustomStatement =
                                     | 1 -> Ok loseBody
                                     | x ->
                                         Error (sprintf "expected 0 or 1 but %d" x)
+
+                        Transformer =
+                            CustomStatementOutput.ofCustomStatement
                     }
 
                 let gameState = State.init Crossroad vars
@@ -312,11 +326,11 @@ module TestGameWithCustomStatement =
 
                 let engine = Engine.update (InputMsg.Choice 0) engine |> Result.get // атаковать
                 let exp =
-                    CustomStatement.Fight(
-                        { EnemyName = "Крокодил"; EnemyStrength = 10 }, [], []
+                    CustomStatementOutput.Fight(
+                        { EnemyName = "Крокодил"; EnemyStrength = 10 }
                     )
                 Engine.getCurrentOutputMsg engine
-                |> equalCustomStatement exp CustomStatement.equals
+                |> equalCustomStatement exp (=)
 
                 do // lose
                     let engine =
