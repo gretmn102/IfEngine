@@ -30,8 +30,8 @@ module Stmt =
         rightStatement: Stmt<'Text,'Label,'CustomStatement> -> bool
         when 'Text: equality and 'Label: equality
 
-type Label<'Text,'Label,'CustomStatement> =
+type NamedBlock<'Text,'Label,'CustomStatement> =
     'Label * Block<'Text,'Label,'CustomStatement>
 
 type Scenario<'Text,'Label,'CustomStatement when 'Label: comparison> =
-    Map<'Label,Label<'Text,'Label,'CustomStatement>>
+    Map<'Label,NamedBlock<'Text,'Label,'CustomStatement>>

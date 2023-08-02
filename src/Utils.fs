@@ -3,7 +3,7 @@ open IfEngine.Types
 
 let label (labelName: 'Label) (stmts: Stmt<'Text, 'Label, 'CustomStatement> list) =
     labelName, stmts
-    : Label<'Text, 'Label, 'CustomStatement>
+    : NamedBlock<'Text, 'Label, 'CustomStatement>
 
 let jump (labelName: 'Label) =
     Jump labelName

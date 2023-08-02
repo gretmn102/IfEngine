@@ -4,7 +4,7 @@ open IfEngine.Types
 val label:
     labelName: 'Label ->
     stmts: Stmt<'Text,'Label,'CustomStatement> list ->
-    Label<'Text,'Label,'CustomStatement>
+    NamedBlock<'Text,'Label,'CustomStatement>
 
 val jump: labelName: 'Label -> Stmt<'a,'Label,'b>
 

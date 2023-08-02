@@ -58,7 +58,7 @@ module Stmt =
 
         f (leftStatement, rightStatement)
 
-type Label<'Text, 'Label, 'CustomStatement> = 'Label * Block<'Text, 'Label, 'CustomStatement>
+type NamedBlock<'Text, 'Label, 'CustomStatement> = 'Label * Block<'Text, 'Label, 'CustomStatement>
 
 type Scenario<'Text, 'Label, 'CustomStatement> when 'Label : comparison =
-    Map<'Label, Label<'Text, 'Label, 'CustomStatement>>
+    Map<'Label, NamedBlock<'Text, 'Label, 'CustomStatement>>
