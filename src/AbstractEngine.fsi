@@ -2,12 +2,12 @@ namespace IfEngine
 open IfEngine.Types
 
 [<RequireQualifiedAccess>]
-type AbstractEngine<'Text, 'LabelName, 'Addon, 'Arg> =
-    | Print of 'Text * (unit -> AbstractEngine<'Text, 'LabelName, 'Addon, 'Arg>)
-    | Choices of 'Text * string list * (int -> AbstractEngine<'Text, 'LabelName, 'Addon, 'Arg>)
+type AbstractEngine<'Text, 'Label, 'Addon, 'Arg> =
+    | Print of 'Text * (unit -> AbstractEngine<'Text, 'Label, 'Addon, 'Arg>)
+    | Choices of 'Text * string list * (int -> AbstractEngine<'Text, 'Label, 'Addon, 'Arg>)
     | End
-    | AddonAct of 'Addon * ('Arg -> AbstractEngine<'Text, 'LabelName, 'Addon, 'Arg>)
-    | NextState of State<'Text, 'LabelName, 'Addon> * (unit -> AbstractEngine<'Text, 'LabelName, 'Addon, 'Arg>)
+    | AddonAct of 'Addon * ('Arg -> AbstractEngine<'Text, 'Label, 'Addon, 'Arg>)
+    | NextState of State<'Text, 'Label, 'Addon> * (unit -> AbstractEngine<'Text, 'Label, 'Addon, 'Arg>)
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module AbstractEngine =
@@ -18,18 +18,18 @@ module AbstractEngine =
         int -> 'CustomStatement -> Result<Block<'Text,'Label,'CustomStatement>, string>
 
     val next:
-        stack: BlockStack<'Text,'LabelName,'Addon> ->
-        state: State<'Text,'LabelName,'Addon> ->
-        continues: (State<'Text,'LabelName,'Addon> -> AbstractEngine<'Text,'LabelName,'Addon,'CustomStatementArg>) ->
-        AbstractEngine<'Text,'LabelName,'Addon,'CustomStatementArg>
+        stack: BlockStack<'Text,'Label,'Addon> ->
+        state: State<'Text,'Label,'Addon> ->
+        continues: (State<'Text,'Label,'Addon> -> AbstractEngine<'Text,'Label,'Addon,'CustomStatementArg>) ->
+        AbstractEngine<'Text,'Label,'Addon,'CustomStatementArg>
 
     val down:
         subIndex: int ->
-        block: Block<'Text,'LabelName,'Addon> ->
-        stack: BlockStack<'Text,'LabelName,'Addon> ->
-        state: State<'Text,'LabelName,'Addon> ->
-        continues: (State<'Text,'LabelName,'Addon> -> AbstractEngine<'Text, 'LabelName, 'Addon, 'Arg>) ->
-        AbstractEngine<'Text, 'LabelName, 'Addon, 'Arg>
+        block: Block<'Text,'Label,'Addon> ->
+        stack: BlockStack<'Text,'Label,'Addon> ->
+        state: State<'Text,'Label,'Addon> ->
+        continues: (State<'Text,'Label,'Addon> -> AbstractEngine<'Text, 'Label, 'Addon, 'Arg>) ->
+        AbstractEngine<'Text, 'Label, 'Addon, 'Arg>
 
     val interp:
       addon: CustomStatementHandle<'Text,'Label,'CustomStatement, 'CustomStatementArg> *

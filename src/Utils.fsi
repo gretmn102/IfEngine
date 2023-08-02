@@ -2,16 +2,16 @@ module IfEngine.Utils
 open IfEngine.Types
 
 val label:
-    labelName: 'LabelName ->
-    stmts: Stmt<'Text,'LabelName,'Addon> list ->
-    Label<'Text,'LabelName,'Addon>
+    labelName: 'Label ->
+    stmts: Stmt<'Text,'Label,'Addon> list ->
+    Label<'Text,'Label,'Addon>
 
-val jump: labelName: 'LabelName -> Stmt<'a,'LabelName,'b>
+val jump: labelName: 'Label -> Stmt<'a,'Label,'b>
 
 val choice:
     caption: string ->
-    body: Stmt<'Text,'LabelName,'Addon> list ->
-    string * Stmt<'Text,'LabelName,'Addon> list
+    body: Stmt<'Text,'Label,'Addon> list ->
+    string * Stmt<'Text,'Label,'Addon> list
 
 val menu:
     caption: 'a ->

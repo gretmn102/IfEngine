@@ -1,14 +1,14 @@
 module IfEngine.Utils
 open IfEngine.Types
 
-let label (labelName: 'LabelName) (stmts: Stmt<'Text, 'LabelName, 'Addon> list) =
+let label (labelName: 'Label) (stmts: Stmt<'Text, 'Label, 'Addon> list) =
     labelName, stmts
-    : Label<'Text, 'LabelName, 'Addon>
+    : Label<'Text, 'Label, 'Addon>
 
-let jump (labelName: 'LabelName) =
+let jump (labelName: 'Label) =
     Jump labelName
 
-let choice (caption: string) (body: Stmt<'Text, 'LabelName, 'Addon> list) = caption, body
+let choice (caption: string) (body: Stmt<'Text, 'Label, 'Addon> list) = caption, body
 
 let menu caption xs = Menu(caption, xs)
 

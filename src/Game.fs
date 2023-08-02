@@ -1,11 +1,11 @@
 module IfEngine.Game
 
-type State<'Text, 'LabelName, 'Addon, 'Arg> =
+type State<'Text, 'Label, 'Addon, 'Arg> =
     {
-        Game: AbstractEngine<'Text, 'LabelName, 'Addon, 'Arg>
-        GameState: State<'Text, 'LabelName, 'Addon>
+        Game: AbstractEngine<'Text, 'Label, 'Addon, 'Arg>
+        GameState: State<'Text, 'Label, 'Addon>
 
-        SavedGameState: State<'Text, 'LabelName, 'Addon>
+        SavedGameState: State<'Text, 'Label, 'Addon>
     }
 
 type Msg<'CustomStatement, 'CustomStatementArg> =
@@ -16,7 +16,7 @@ type Msg<'CustomStatement, 'CustomStatementArg> =
     | Load
     | NewGame
 
-let update interp scenarioInit (msg: Msg<'Addon, 'Arg>) (state: State<'Text, 'LabelName, 'Addon, 'Arg>) =
+let update interp scenarioInit (msg: Msg<'Addon, 'Arg>) (state: State<'Text, 'Label, 'Addon, 'Arg>) =
     let nextState x =
         let rec nextState gameState = function
             | AbstractEngine.NextState(newGameState, next) ->

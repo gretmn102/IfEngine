@@ -3,12 +3,12 @@ open IfEngine.Types
 open FsharpMyExtension.ResultExt
 
 [<RequireQualifiedAccess>]
-type AbstractEngine<'Text, 'LabelName, 'Addon, 'Arg> =
-    | Print of 'Text * (unit -> AbstractEngine<'Text, 'LabelName, 'Addon, 'Arg>)
-    | Choices of 'Text * string list * (int -> AbstractEngine<'Text, 'LabelName, 'Addon, 'Arg>)
+type AbstractEngine<'Text, 'Label, 'Addon, 'Arg> =
+    | Print of 'Text * (unit -> AbstractEngine<'Text, 'Label, 'Addon, 'Arg>)
+    | Choices of 'Text * string list * (int -> AbstractEngine<'Text, 'Label, 'Addon, 'Arg>)
     | End
-    | AddonAct of 'Addon * ('Arg -> AbstractEngine<'Text, 'LabelName, 'Addon, 'Arg>)
-    | NextState of State<'Text, 'LabelName, 'Addon> * (unit -> AbstractEngine<'Text, 'LabelName, 'Addon, 'Arg>)
+    | AddonAct of 'Addon * ('Arg -> AbstractEngine<'Text, 'Label, 'Addon, 'Arg>)
+    | NextState of State<'Text, 'Label, 'Addon> * (unit -> AbstractEngine<'Text, 'Label, 'Addon, 'Arg>)
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
@@ -24,7 +24,7 @@ module AbstractEngine =
     type CustomStatementRestore<'Text,'Label,'CustomStatement> =
         int -> 'CustomStatement -> Result<Block<'Text,'Label,'CustomStatement>, string>
 
-    let next (stack: BlockStack<'Text,'LabelName,'Addon>) (state: State<'Text,'LabelName,'Addon>) continues =
+    let next (stack: BlockStack<'Text,'Label,'Addon>) (state: State<'Text,'Label,'Addon>) continues =
         match BlockStack.next stack with
         | Some stackStatements ->
             let state =
@@ -39,7 +39,7 @@ module AbstractEngine =
             AbstractEngine.NextState(state, fun () -> continues state)
         | None -> AbstractEngine.End
 
-    let down subIndex (block: Block<'Text, 'LabelName, 'Addon>) (stack: BlockStack<'Text,'LabelName,'Addon>) state continues =
+    let down subIndex (block: Block<'Text, 'Label, 'Addon>) (stack: BlockStack<'Text,'Label,'Addon>) state continues =
         if List.isEmpty block then
             next stack state continues
         else

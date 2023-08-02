@@ -7,17 +7,17 @@ type Var =
 
 type Vars = Map<string,Var>
 
-type Block<'Text,'LabelName,'Addon> = Stmt<'Text,'LabelName,'Addon> list
+type Block<'Text,'Label,'Addon> = Stmt<'Text,'Label,'Addon> list
 
-and Choice<'Text,'LabelName,'Addon> = string * Block<'Text,'LabelName,'Addon>
+and Choice<'Text,'Label,'Addon> = string * Block<'Text,'Label,'Addon>
 
-and Choices<'Text,'LabelName,'Addon> = Choice<'Text,'LabelName,'Addon> list
+and Choices<'Text,'Label,'Addon> = Choice<'Text,'Label,'Addon> list
 
-and Stmt<'Text,'LabelName,'Addon> =
+and Stmt<'Text,'Label,'Addon> =
     | Say of 'Text
-    | Jump of 'LabelName
-    | Menu of 'Text * Choices<'Text,'LabelName,'Addon>
-    | If of (Vars -> bool) * Block<'Text,'LabelName,'Addon> * Block<'Text,'LabelName,'Addon>
+    | Jump of 'Label
+    | Menu of 'Text * Choices<'Text,'Label,'Addon>
+    | If of (Vars -> bool) * Block<'Text,'Label,'Addon> * Block<'Text,'Label,'Addon>
     | ChangeVars of (Vars -> Vars)
     | Addon of 'Addon
 
@@ -26,12 +26,12 @@ and Stmt<'Text,'LabelName,'Addon> =
 module Stmt =
     val equals:
       customEquals: ('Addon -> 'Addon -> bool) ->
-        leftStatement: Stmt<'Text,'LabelName,'Addon> ->
-        rightStatement: Stmt<'Text,'LabelName,'Addon> -> bool
-        when 'Text: equality and 'LabelName: equality
+        leftStatement: Stmt<'Text,'Label,'Addon> ->
+        rightStatement: Stmt<'Text,'Label,'Addon> -> bool
+        when 'Text: equality and 'Label: equality
 
-type Label<'Text,'LabelName,'Addon> =
-    'LabelName * Block<'Text,'LabelName,'Addon>
+type Label<'Text,'Label,'Addon> =
+    'Label * Block<'Text,'Label,'Addon>
 
-type Scenario<'Text,'LabelName,'Addon when 'LabelName: comparison> =
-    Map<'LabelName,Label<'Text,'LabelName,'Addon>>
+type Scenario<'Text,'Label,'Addon when 'Label: comparison> =
+    Map<'Label,Label<'Text,'Label,'Addon>>
