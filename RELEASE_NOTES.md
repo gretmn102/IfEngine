@@ -1,3 +1,6 @@
+## 1.1.1
+* fix: fable: .fsi files missing
+
 ## 1.1.0
 * breaking: rename `Interpreter.Command` to `Interpreter.AbstractEngine`
 * breaking: move `Interpreter.next`, `Interpreter.down` and `Interpreter.interp` to `AbstractEngine`
