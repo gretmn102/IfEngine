@@ -1,5 +1,6 @@
 module IfEngine.Types
 
+[<RequireQualifiedAccess>]
 type Var =
     | String of string
     | Bool of bool
