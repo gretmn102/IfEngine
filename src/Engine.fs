@@ -64,6 +64,21 @@ type Engine<'Text, 'Label, 'CustomStatement, 'CustomStatementArg, 'CustomStateme
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module Engine =
+    let nextState
+        abstractEngine
+        (engine: Engine<'Text, 'Label, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>) =
+
+        let rec nextState gameState = function
+            | AbstractEngine.NextState(newGameState, next) ->
+                nextState newGameState (next ())
+            | abstractEngine ->
+                { engine with
+                    GameState = gameState
+                    AbstractEngine = abstractEngine
+                }
+
+        nextState engine.GameState abstractEngine
+
     let create
         (customStatementHandler: CustomStatementHandler<'Text, 'Label, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>)
         (scenario: Types.Scenario<'Text, 'Label, 'CustomStatement>)
@@ -83,6 +98,7 @@ module Engine =
                 CustomStatementTransformer =
                     customStatementHandler.Transformer
             }
+            |> nextState abstractEngine
         )
 
     let getCurrentOutputMsg
@@ -96,17 +112,7 @@ module Engine =
         (engine: Engine<'Text, 'Label, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>)
         : Result<Engine<'Text, 'Label, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>, string> =
 
-        let nextState abstractEngine =
-            let rec nextState gameState = function
-                | AbstractEngine.NextState(newGameState, next) ->
-                    nextState newGameState (next ())
-                | abstractEngine ->
-                    { engine with
-                        GameState = gameState
-                        AbstractEngine = abstractEngine
-                    }
-
-            nextState engine.GameState abstractEngine |> Ok
+        let nextState abstractEngine = nextState abstractEngine engine |> Ok
 
         match msg with
         | InputMsg.Next ->

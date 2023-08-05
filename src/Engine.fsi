@@ -48,6 +48,11 @@ type Engine<'Text,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementOu
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module Engine =
+    val nextState:
+       abstractEngine: AbstractEngine<'Text,'Label,'CustomStatement,'CustomStatementArg> ->
+       engine        : Engine<'Text,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementOutput>
+                    -> Engine<'Text,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementOutput>
+
     val create:
         customStatementHandler: CustomStatementHandler<'Text,'Label,
                                                      'CustomStatement,
