@@ -18,7 +18,7 @@ val menu:
     xs: Choices<'a,'b,'c> -> Stmt<'a,'b,'c>
 
 val if':
-    pred: (Vars -> bool) ->
+    pred: (VarsContainer -> bool) ->
     thenBody: Block<'a,'b,'c> ->
     elseBody: Block<'a,'b,'c> -> Stmt<'a,'b,'c>
 
@@ -31,6 +31,6 @@ val createNumVar:
     Map<string,Var>
 
 val switch:
-    thenBodies: list<(Vars -> bool) * Block<'Text,'Label,'CustomStatement>> ->
+    thenBodies: list<(VarsContainer -> bool) * Block<'Text,'Label,'CustomStatement>> ->
     elseBody  : Block<'Text,'Label,'CustomStatement>
              -> Block<'Text,'Label,'CustomStatement>

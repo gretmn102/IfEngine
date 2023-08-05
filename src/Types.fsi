@@ -5,7 +5,7 @@ type Var =
     | Bool of bool
     | Num of int
 
-type Vars = Map<string,Var>
+type VarsContainer = Map<string,Var>
 
 type Block<'Text,'Label,'CustomStatement> = Stmt<'Text,'Label,'CustomStatement> list
 
@@ -17,8 +17,8 @@ and Stmt<'Text,'Label,'CustomStatement> =
     | Say of 'Text
     | Jump of 'Label
     | Menu of 'Text * Choices<'Text,'Label,'CustomStatement>
-    | If of (Vars -> bool) * Block<'Text,'Label,'CustomStatement> * Block<'Text,'Label,'CustomStatement>
-    | ChangeVars of (Vars -> Vars)
+    | If of (VarsContainer -> bool) * Block<'Text,'Label,'CustomStatement> * Block<'Text,'Label,'CustomStatement>
+    | ChangeVars of (VarsContainer -> VarsContainer)
     | Addon of 'CustomStatement
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]

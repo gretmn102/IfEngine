@@ -132,7 +132,7 @@ module NamedStack =
 type State<'Text, 'Label, 'CustomStatement> =
     {
         LabelState: NamedStack<'Label>
-        Vars: Vars
+        Vars: VarsContainer
     }
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
