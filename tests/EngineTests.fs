@@ -42,19 +42,28 @@ module Utils =
 
 open Utils
 
+let applesCount = VarsContainer.createNum "apples"
+let isApplesOnRightRoad = VarsContainer.createBool "isApplesOnRightRoad"
+
 module SimpleTestGame =
     type CustomStatement = unit
 
     type LabelName =
+        | VariablesDefinition
         | Crossroad
         | LeftRoad
         | RightRoad
-    let scenario, vars =
-        let vars = Map.empty
-        let getApplesCount, updateApplesCount, vars = createNumVar "apples" 0 vars
-        let getRoadApplesCount, updateRoadApplesCount, vars = createNumVar "applesOnRoad" 1 vars
 
+    let beginLoc = VariablesDefinition
+
+    let scenario =
         [
+            label VariablesDefinition [
+                applesCount := 0
+                isApplesOnRightRoad := true
+                jump Crossroad
+            ]
+
             label Crossroad [
                 menu "Ты стоишь на развилке в лесу." [
                     choice "пойти влево" [ jump LeftRoad ]
@@ -64,11 +73,11 @@ module SimpleTestGame =
 
             label LeftRoad [
                 if' (fun vars ->
-                    getApplesCount vars > 0
+                    Var.get applesCount vars > 0
                 ) [
                     menu "По левой дороге ты встречаешь ежика. Ежик голоден и хочет поесть." [
                         choice "Покормить" [
-                            updateApplesCount (fun count -> count - 1)
+                            update applesCount (fun count -> count - 1)
                             say "Ты покормил ёжика"
                         ]
                         choice "Вернуться на развилку" [ jump Crossroad ]
@@ -81,13 +90,11 @@ module SimpleTestGame =
             ]
 
             label RightRoad [
-                if' (fun vars ->
-                    getRoadApplesCount vars > 0
-                ) [
+                if' (Var.get isApplesOnRightRoad) [
                     menu "По правой дороге ты находишь яблоко." [
                         choice "Поднять" [
-                            updateRoadApplesCount (fun x -> x - 1)
-                            updateApplesCount ((+) 1)
+                            isApplesOnRightRoad := false
+                            update applesCount ((+) 1)
 
                             jump RightRoad
                         ]
@@ -103,16 +110,14 @@ module SimpleTestGame =
         |> List.map (fun (labelName, body) -> labelName, (labelName, body))
         |> Map.ofList
         |> fun scenario ->
-            (scenario: Scenario<_, _, CustomStatement>), vars
+            (scenario: Scenario<_, _, CustomStatement>)
 
     [<Tests>]
     let test =
         testList "Engine.SimpleTestGame" [
             testCase "base" <| fun () ->
-                let beginLoc = Crossroad
-
                 let initGameState =
-                    State.init beginLoc vars
+                    State.init beginLoc VarsContainer.empty
 
                 let engine =
                     Engine.create
@@ -217,9 +222,7 @@ module TestGameWithCustomStatement =
             CustomStatement.Fight(enemy, winBody, loseBody)
         )
 
-    let scenario, vars =
-        let vars = Map.empty
-
+    let scenario =
         [
             label Crossroad [
                 menu "Ты стоишь на развилке двух дорог." [
@@ -267,7 +270,7 @@ module TestGameWithCustomStatement =
         |> List.map (fun (labelName, body) -> labelName, (labelName, body))
         |> Map.ofList
         |> fun scenario ->
-            (scenario: Scenario<_, _, CustomStatement>), vars
+            (scenario: Scenario<_, _, CustomStatement>)
 
     [<Tests>]
     let tests =
@@ -300,7 +303,7 @@ module TestGameWithCustomStatement =
                             CustomStatementOutput.ofCustomStatement
                     }
 
-                let gameState = State.init Crossroad vars
+                let gameState = State.init Crossroad VarsContainer.empty
 
                 let engine =
                     Engine.create

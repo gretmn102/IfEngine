@@ -44,3 +44,18 @@ let switch
         )
         thenBodies
         elseBody
+
+let assign (var: #IVar<_>) newValue =
+    ChangeVars (Var.set var newValue)
+
+let (:=) (var: #IVar<_>) newValue =
+    assign var newValue
+
+let equals (var: #IVar<_>) otherValue varsContainer =
+    Var.equals var otherValue varsContainer
+
+let (==) (var: #IVar<_>) otherValue varsContainer =
+    Var.equals var otherValue varsContainer
+
+let update (var: #IVar<_>) mapping =
+    ChangeVars (Var.update var mapping)

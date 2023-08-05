@@ -34,3 +34,33 @@ val switch:
     thenBodies: list<(VarsContainer -> bool) * Block<'Text,'Label,'CustomStatement>> ->
     elseBody  : Block<'Text,'Label,'CustomStatement>
              -> Block<'Text,'Label,'CustomStatement>
+
+/// The `:=` operator can be used instead of this function.
+val assign:
+    var     : 'Var ->
+    newValue: 'Value
+           -> Stmt<'Text,'Label,'CustomStatement>
+    when 'Var :> IVar<'Value>
+
+val (:=):
+    var     : 'Var ->
+    newValue: 'Value
+           -> Stmt<'Text,'Label,'CustomStatement>
+    when 'Var :> IVar<'Value>
+
+/// The `==` operator can be used instead of this function.
+val equals:
+    var: 'Var ->
+    otherValue: 'Value -> varsContainer: VarsContainer -> bool
+    when 'Var :> IVar<'Value> and 'Value : equality
+
+val (==):
+    var: 'Var ->
+    otherValue: 'Value -> varsContainer: VarsContainer -> bool
+    when 'Var :> IVar<'Value> and 'Value: equality
+
+val update:
+    var     : 'Var ->
+    mapping : ('Value -> 'Value)
+           -> Stmt<'Text,'Label,'CustomStatement>
+    when 'Var :> IVar<'Value>
