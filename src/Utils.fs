@@ -33,3 +33,14 @@ let createNumVar varName value vars =
         )
 
     get, update, vars
+
+let switch
+    (thenBodies: ((Vars -> bool) * Block<'Text,'Label,'CustomStatement>) list)
+    (elseBody: Block<'Text,'Label,'CustomStatement>) =
+
+    List.foldBack
+        (fun ((pred: Vars -> bool), (thenBody: Block<'Text,'Label,'CustomStatement>)) elseBody ->
+            [If(pred, thenBody, elseBody)]
+        )
+        thenBodies
+        elseBody

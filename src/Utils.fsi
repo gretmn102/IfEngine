@@ -30,3 +30,7 @@ val createNumVar:
     ((int -> int) -> Stmt<'a,'b,'c>) *
     Map<string,Var>
 
+val switch:
+    thenBodies: list<(Vars -> bool) * Block<'Text,'Label,'CustomStatement>> ->
+    elseBody  : Block<'Text,'Label,'CustomStatement>
+             -> Block<'Text,'Label,'CustomStatement>
