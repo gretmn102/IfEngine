@@ -1,3 +1,10 @@
+## 1.2.0
+* feat: add `Utils.switch`
+* breaking: rename `Types.Vars` to `Types.VarsContainer`
+* breaking: make `Types.Var` require access qualified access
+* fix: scroll `NextState`'s in `Engine.create`
+* feat: add the `IVar` interface and create var types using it
+
 ## 1.1.1
 * fix: fable: .fsi files missing
 
