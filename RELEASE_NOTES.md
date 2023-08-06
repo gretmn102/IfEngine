@@ -1,3 +1,6 @@
+## 1.2.1
+* fix: `EnumVar` compile error in Fable 3.7.20
+
 ## 1.2.0
 * feat: add `Utils.switch`
 * breaking: rename `Types.Vars` to `Types.VarsContainer`
