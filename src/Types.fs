@@ -97,7 +97,7 @@ type EnumVar<'T when 'T: enum<int32>>(varName: string)  =
         member __.Get varsContainer =
             let enum (x: int) =
                 #if FABLE_COMPILER
-                (enum x) : 'T
+                unbox x : 'T
                 #else
                 unbox (System.Enum.ToObject(typeof<'T>, x)) : 'T
                 #endif
