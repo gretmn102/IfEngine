@@ -114,6 +114,11 @@ Target.create "RunTests" (fun _ ->
     |> dotnet (sprintf "run %s" commonBuildArgs)
 )
 
+Target.create "FableBuild" (fun _ ->
+    mainProjDir
+    |> dotnet "fable -o bin/fable"
+)
+
 // --------------------------------------------------------------------------------------
 // Build order
 // --------------------------------------------------------------------------------------
@@ -130,6 +135,8 @@ open Fake.Core.TargetOperators
   ==> "PushToGitlab"
 
 "BuildTests"
+
+"FableBuild"
 
 "RunTests"
 
