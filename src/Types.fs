@@ -138,6 +138,7 @@ and Choice<'Text, 'Label, 'CustomStatement> = string * Block<'Text, 'Label, 'Cus
 and Choices<'Text, 'Label, 'CustomStatement> = Choice<'Text, 'Label, 'CustomStatement> list
 and Stmt<'Text, 'Label, 'CustomStatement> =
     | Say of 'Text
+    | InterpolationSay of (VarsContainer -> 'Text)
     | Jump of 'Label
     | Menu of 'Text * Choices<'Text, 'Label, 'CustomStatement>
     | If of (VarsContainer -> bool) * Block<'Text, 'Label, 'CustomStatement> * Block<'Text, 'Label, 'CustomStatement>

@@ -34,3 +34,6 @@ let testCustomStatement (exp: 'CustomStatement) eq (cmd: AbstractEngine<'Text, '
 
 let say (txt: string) =
     Say txt
+
+let interSay (getText: _ -> string) =
+    InterpolationSay getText

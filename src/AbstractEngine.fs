@@ -126,6 +126,13 @@ module AbstractEngine =
                             )
                         )
 
+                    | InterpolationSay getText ->
+                        AbstractEngine.Print(getText state.Vars, fun () ->
+                            next stack state (fun state ->
+                                loop state
+                            )
+                        )
+
                     | Addon customStatement ->
                         AbstractEngine.AddonAct(customStatement, fun customStatementArg ->
                             addon state stack customStatementArg customStatement (fun state ->

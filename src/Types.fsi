@@ -73,6 +73,7 @@ and Choices<'Text,'Label,'CustomStatement> = Choice<'Text,'Label,'CustomStatemen
 
 and Stmt<'Text,'Label,'CustomStatement> =
     | Say of 'Text
+    | InterpolationSay of (VarsContainer -> 'Text)
     | Jump of 'Label
     | Menu of 'Text * Choices<'Text,'Label,'CustomStatement>
     | If of (VarsContainer -> bool) * Block<'Text,'Label,'CustomStatement> * Block<'Text,'Label,'CustomStatement>

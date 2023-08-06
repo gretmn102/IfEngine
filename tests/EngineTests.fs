@@ -96,6 +96,11 @@ module SimpleTestGame =
                             isApplesOnRightRoad := false
                             update applesCount ((+) 1)
 
+                            interSay (fun vars ->
+                                Var.get applesCount vars
+                                |> sprintf "Теперь у тебя %d яблок."
+                            )
+
                             jump RightRoad
                         ]
                         choice "Вернуться" [ jump Crossroad ]
@@ -152,6 +157,11 @@ module SimpleTestGame =
                 Assert.Equal("", menu, Engine.getCurrentOutputMsg engine)
 
                 let engine = Engine.update (InputMsg.Choice 0) engine |> Result.get
+                let outputMsg =
+                    OutputMsg.Print "Теперь у тебя 1 яблок."
+                Assert.Equal("", outputMsg, Engine.getCurrentOutputMsg engine)
+
+                let engine = Engine.update InputMsg.Next engine |> Result.get
                 let menu =
                     OutputMsg.Choices("По правой дороге больше ничего нет.", [
                         "Вернуться"
