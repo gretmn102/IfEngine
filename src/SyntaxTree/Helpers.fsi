@@ -22,14 +22,6 @@ val if':
     thenBody: Block<'a,'b,'c> ->
     elseBody: Block<'a,'b,'c> -> Stmt<'a,'b,'c>
 
-val createNumVar:
-    varName: string ->
-    value: int ->
-    vars: Map<string,Var> ->
-    (Map<string,Var> -> int) *
-    ((int -> int) -> Stmt<'a,'b,'c>) *
-    Map<string,Var>
-
 val switch:
     thenBodies: list<(VarsContainer -> bool) * Block<'Text,'Label,'CustomStatement>> ->
     elseBody  : Block<'Text,'Label,'CustomStatement>
