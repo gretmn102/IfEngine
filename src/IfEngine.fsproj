@@ -18,8 +18,6 @@
     <Compile Include="AbstractEngine.fs" />
     <Compile Include="Engine.fsi" />
     <Compile Include="Engine.fs" />
-    <Compile Include="Game.fsi" />
-    <Compile Include="Game.fs" />
     <Compile Include="Utils.fsi" />
     <Compile Include="Utils.fs" />
   </ItemGroup>
