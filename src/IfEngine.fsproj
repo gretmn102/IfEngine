@@ -10,8 +10,8 @@
   </Target>
   <ItemGroup>
     <Content Include="*.fsproj; *.fs; *.fsi; *.js;" Exclude="**\*.fs.js" PackagePath="fable\" />
-    <Compile Include="Types.fsi" />
-    <Compile Include="Types.fs" />
+    <Compile Include="SyntaxTree\SyntaxTree.fsi" />
+    <Compile Include="SyntaxTree\SyntaxTree.fs" />
     <Compile Include="SyntaxTree\Helpers.fsi" />
     <Compile Include="SyntaxTree\Helpers.fs" />
     <Compile Include="Interpreter.fsi" />
