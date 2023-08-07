@@ -1,4 +1,4 @@
-module IfEngine.Utils
+module IfEngine.SyntaxTree.Helpers
 open IfEngine.SyntaxTree
 
 let label (labelName: 'Label) (stmts: Stmt<'Text, 'Label, 'CustomStatement> list) =

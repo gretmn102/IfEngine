@@ -1,4 +1,4 @@
-module IfEngine.Utils
+module IfEngine.SyntaxTree.Helpers
 open IfEngine.SyntaxTree
 
 val label:

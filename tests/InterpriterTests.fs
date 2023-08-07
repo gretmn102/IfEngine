@@ -3,7 +3,7 @@ open Fuchu
 
 open IfEngine
 open IfEngine.SyntaxTree
-open IfEngine.Utils
+open IfEngine.SyntaxTree.Helpers
 
 open Utils
 
