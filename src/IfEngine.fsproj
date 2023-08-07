@@ -9,7 +9,7 @@
     <RemoveDir Directories="$(BaseIntermediateOutputPath)" />
   </Target>
   <ItemGroup>
-    <Content Include="*.fsproj; *.fs; *.fsi; *.js;" Exclude="**\*.fs.js" PackagePath="fable\" />
+    <Content Include="**\*.fsproj; **\*.fs; **\*.fsi; **\*.js;" Exclude="**\*.fs.js; obj; bin" PackagePath="fable\" />
     <Compile Include="SyntaxTree\SyntaxTree.fsi" />
     <Compile Include="SyntaxTree\SyntaxTree.fs" />
     <Compile Include="SyntaxTree\Helpers.fsi" />
