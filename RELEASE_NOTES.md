@@ -1,3 +1,6 @@
+## 1.3.1
+* fix: not found sources files in `SyntaxTree` for Fable
+
 ## 1.3.0
 * feat: add `InterpolationSay` statement
 * breaking: remove `Game`
