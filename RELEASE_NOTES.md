@@ -1,3 +1,11 @@
+## 1.3.0
+* feat: add `InterpolationSay` statement
+* breaking: remove `Game`
+* breaking: rename `AbstractEngine.interp` to `AbstractEngine.create`
+* breaking: rename `Types` to `SyntaxTree`
+* breaking: remove `Utils.createNumVar`
+* breaking: rename `Utils` to `SyntaxTree.Helpers`
+
 ## 1.2.1
 * fix: `EnumVar` compile error in Fable 3.7.20
 
