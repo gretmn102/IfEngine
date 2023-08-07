@@ -85,7 +85,7 @@ module Engine =
         (gameState: State<'Text, 'Label, 'CustomStatement>)
         : Result<Engine<'Text, 'Label, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>, string> =
 
-        AbstractEngine.interp
+        AbstractEngine.create
             (customStatementHandler.Handle, customStatementHandler.RestoreBlockFromStack)
             scenario
             gameState

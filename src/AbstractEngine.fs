@@ -59,13 +59,13 @@ module AbstractEngine =
                 }
             AbstractEngine.NextState(state, fun () -> continues state)
 
-    let rec interp
+    let rec create
         (addon: CustomStatementHandle<'Text,'Label,'CustomStatement, 'CustomStatementArg>, handleCustomStatement: CustomStatementRestore<'Text,'Label,'CustomStatement>)
         (scenario: Scenario<'Text, 'Label, 'CustomStatement>)
         (state: State<'Text, 'Label, 'CustomStatement>) =
 
         let loop state =
-            interp (addon, handleCustomStatement) scenario state
+            create (addon, handleCustomStatement) scenario state
             |> Result.get
 
         if List.isEmpty state.LabelState.Stack then

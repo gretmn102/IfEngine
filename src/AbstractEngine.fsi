@@ -31,7 +31,7 @@ module AbstractEngine =
         continues: (State<'Text,'Label,'CustomStatement> -> AbstractEngine<'Text, 'Label, 'CustomStatement, 'Arg>) ->
         AbstractEngine<'Text, 'Label, 'CustomStatement, 'Arg>
 
-    val interp:
+    val create:
       addon: CustomStatementHandle<'Text,'Label,'CustomStatement, 'CustomStatementArg> *
       handleCustomStatement: CustomStatementRestore<'Text,'Label,'CustomStatement> ->
         scenario: Scenario<'Text,'Label,'CustomStatement> ->
