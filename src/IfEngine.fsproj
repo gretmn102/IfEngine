@@ -12,14 +12,14 @@
     <Content Include="*.fsproj; *.fs; *.fsi; *.js;" Exclude="**\*.fs.js" PackagePath="fable\" />
     <Compile Include="Types.fsi" />
     <Compile Include="Types.fs" />
+    <Compile Include="SyntaxTree\Helpers.fsi" />
+    <Compile Include="SyntaxTree\Helpers.fs" />
     <Compile Include="Interpreter.fsi" />
     <Compile Include="Interpreter.fs" />
     <Compile Include="AbstractEngine.fsi" />
     <Compile Include="AbstractEngine.fs" />
     <Compile Include="Engine.fsi" />
     <Compile Include="Engine.fs" />
-    <Compile Include="Utils.fsi" />
-    <Compile Include="Utils.fs" />
   </ItemGroup>
   <Import Project="..\.paket\Paket.Restore.targets" />
 </Project>
