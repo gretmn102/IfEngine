@@ -4,7 +4,7 @@ open FsharpMyExtension
 open FsharpMyExtension.ResultExt
 
 open IfEngine
-open IfEngine.Types
+open IfEngine.SyntaxTree
 open IfEngine.Utils
 open IfEngine.Engine
 

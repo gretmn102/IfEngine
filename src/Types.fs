@@ -1,4 +1,4 @@
-module IfEngine.Types
+namespace IfEngine.SyntaxTree
 
 [<RequireQualifiedAccess>]
 type Var =

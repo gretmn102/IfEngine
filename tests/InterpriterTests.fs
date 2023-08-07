@@ -2,7 +2,7 @@ module InterpriterTests
 open Fuchu
 
 open IfEngine
-open IfEngine.Types
+open IfEngine.SyntaxTree
 open IfEngine.Utils
 
 open Utils

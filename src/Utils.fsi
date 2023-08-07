@@ -1,5 +1,5 @@
 module IfEngine.Utils
-open IfEngine.Types
+open IfEngine.SyntaxTree
 
 val label:
     labelName: 'Label ->

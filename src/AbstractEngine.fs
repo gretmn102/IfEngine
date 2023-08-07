@@ -1,5 +1,5 @@
 namespace IfEngine
-open IfEngine.Types
+open IfEngine.SyntaxTree
 open FsharpMyExtension.ResultExt
 
 [<RequireQualifiedAccess>]

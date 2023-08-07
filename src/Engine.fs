@@ -81,7 +81,7 @@ module Engine =
 
     let create
         (customStatementHandler: CustomStatementHandler<'Text, 'Label, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>)
-        (scenario: Types.Scenario<'Text, 'Label, 'CustomStatement>)
+        (scenario: SyntaxTree.Scenario<'Text, 'Label, 'CustomStatement>)
         (gameState: State<'Text, 'Label, 'CustomStatement>)
         : Result<Engine<'Text, 'Label, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>, string> =
 

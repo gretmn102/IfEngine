@@ -2,7 +2,7 @@ module Utils
 open Fuchu
 
 open IfEngine
-open IfEngine.Types
+open IfEngine.SyntaxTree
 
 let getPrint exp (cmd: AbstractEngine<'Text, 'Label, 'CustomStatement, 'Arg>) =
     match cmd with

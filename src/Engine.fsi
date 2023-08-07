@@ -1,5 +1,5 @@
 module IfEngine.Engine
-open IfEngine.Types
+open IfEngine.SyntaxTree
 
 [<RequireQualifiedAccess>]
 type InputMsg<'CustomStatementArg> =
