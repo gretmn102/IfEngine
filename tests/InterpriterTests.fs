@@ -5,7 +5,7 @@ open IfEngine
 open IfEngine.SyntaxTree
 open IfEngine.SyntaxTree.Helpers
 
-open Utils
+open Tests.SyntaxTree.Helpers
 
 [<Tests>]
 let InterpTests =

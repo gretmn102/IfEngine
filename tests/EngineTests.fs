@@ -8,7 +8,7 @@ open IfEngine.SyntaxTree
 open IfEngine.SyntaxTree.Helpers
 open IfEngine.Engine
 
-open Utils
+open Tests.SyntaxTree.Helpers
 
 // todo: replace `Utils`
 module Utils =

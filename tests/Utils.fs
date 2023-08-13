@@ -31,9 +31,3 @@ let testCustomStatement (exp: 'CustomStatement) eq (cmd: AbstractEngine<'Content
             failwithf "expected: %A\nactual: %A" exp customStatement
     | x ->
         failwithf "expected Menu %A\nbut:\n%A" exp x
-
-let say (txt: string) =
-    Say txt
-
-let interSay (getText: _ -> string) =
-    InterpolationSay getText
