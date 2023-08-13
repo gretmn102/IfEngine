@@ -1,4 +1,4 @@
-module Tests
+module Tests.Program
 open Fuchu
 
 [<EntryPoint>]
