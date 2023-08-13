@@ -17,6 +17,7 @@
   <ItemGroup>
     <Compile Include="SyntaxTree\Helpers.fs" />
     <Compile Include="Engine\Utils.fs" />
+    <Compile Include="Engine\SimpleTestGame.fs" />
     <Compile Include="Utils.fs" />
     <Compile Include="InterpriterTests.fs" />
     <Compile Include="EngineTests.fs" />
