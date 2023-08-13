@@ -1,3 +1,6 @@
+## 1.4.0
+* feat: add `SyntaxTree.CommonContent` type
+
 ## 1.3.1
 * fix: not found sources files in `SyntaxTree` for Fable
 
