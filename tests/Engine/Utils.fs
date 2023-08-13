@@ -32,9 +32,3 @@ let equalCustomStatement (exp: 'CustomStatement) eq (cmd: OutputMsg<'Content, 'C
             failwithf "expected: %A\nactual: %A" exp customStatement
     | x ->
         failwithf "expected Menu %A\nbut:\n%A" exp x
-
-let say (txt: string) =
-    Say txt
-
-let interSay (getText: _ -> string) =
-    InterpolationSay getText
