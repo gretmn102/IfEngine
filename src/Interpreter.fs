@@ -32,14 +32,14 @@ module Stack =
     let push indexStatement (stack: Stack) : Stack =
         indexStatement :: stack
 
-type BlockStack<'Text, 'Label, 'CustomStatement> =
-    (StatementIndexInBlock * Block<'Text, 'Label, 'CustomStatement>) list
+type BlockStack<'Content, 'Label, 'CustomStatement> =
+    (StatementIndexInBlock * Block<'Content, 'Label, 'CustomStatement>) list
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module BlockStack =
-    let ofStack handleCustomStatement (startedBlock: Block<'Text, 'Label, 'CustomStatement>) (stack: Stack) : Result<BlockStack<'Text, 'Label, 'CustomStatement>, _> =
-        let get (index: StatementIndexInBlock) (block: Block<'Text, 'Label, 'CustomStatement>) =
+    let ofStack handleCustomStatement (startedBlock: Block<'Content, 'Label, 'CustomStatement>) (stack: Stack) : Result<BlockStack<'Content, 'Label, 'CustomStatement>, _> =
+        let get (index: StatementIndexInBlock) (block: Block<'Content, 'Label, 'CustomStatement>) =
             match index with
             | StatementIndexInBlock.BlockStatement(index, subIndex) ->
                 if index < block.Length then
@@ -69,7 +69,7 @@ module BlockStack =
         | [] ->
             Ok []
         | stack ->
-            let rec f (block: Block<'Text, 'Label, 'CustomStatement>) acc = function
+            let rec f (block: Block<'Content, 'Label, 'CustomStatement>) acc = function
                 | [index] ->
                     match index with
                     | StatementIndexInBlock.SimpleStatement _ ->
@@ -86,11 +86,11 @@ module BlockStack =
 
             f startedBlock [] (List.rev stack)
 
-    let toStack (stackStatements: BlockStack<'Text, 'Label, 'CustomStatement>) : Stack =
+    let toStack (stackStatements: BlockStack<'Content, 'Label, 'CustomStatement>) : Stack =
         List.map fst stackStatements
 
-    let next (stackStatements: BlockStack<'Text, 'Label, 'CustomStatement>) =
-        let rec next (stack: BlockStack<'Text, 'Label, 'CustomStatement>) =
+    let next (stackStatements: BlockStack<'Content, 'Label, 'CustomStatement>) =
+        let rec next (stack: BlockStack<'Content, 'Label, 'CustomStatement>) =
             match stack with
             | (index, block)::restStack ->
                 let index =
@@ -122,14 +122,14 @@ module NamedStack =
             Stack = stack
         }
 
-    let restoreBlock handleCustomStatement (scenario: Scenario<'Text, 'Label, 'CustomStatement>) (labelState: NamedStack<'Label>) =
+    let restoreBlock handleCustomStatement (scenario: Scenario<'Content, 'Label, 'CustomStatement>) (labelState: NamedStack<'Label>) =
         match Map.tryFind labelState.Label scenario with
         | Some (_, block) ->
             BlockStack.ofStack handleCustomStatement block labelState.Stack
         | None ->
             Error (sprintf "Not found %A label" labelState.Label)
 
-type State<'Text, 'Label, 'CustomStatement> =
+type State<'Content, 'Label, 'CustomStatement> =
     {
         LabelState: NamedStack<'Label>
         Vars: VarsContainer

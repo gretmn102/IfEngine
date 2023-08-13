@@ -1,14 +1,14 @@
 module IfEngine.SyntaxTree.Helpers
 open IfEngine.SyntaxTree
 
-let label (labelName: 'Label) (stmts: Stmt<'Text, 'Label, 'CustomStatement> list) =
+let label (labelName: 'Label) (stmts: Stmt<'Content, 'Label, 'CustomStatement> list) =
     labelName, stmts
-    : NamedBlock<'Text, 'Label, 'CustomStatement>
+    : NamedBlock<'Content, 'Label, 'CustomStatement>
 
 let jump (labelName: 'Label) =
     Jump labelName
 
-let choice (caption: string) (body: Stmt<'Text, 'Label, 'CustomStatement> list) = caption, body
+let choice (caption: string) (body: Stmt<'Content, 'Label, 'CustomStatement> list) = caption, body
 
 let menu caption xs = Menu(caption, xs)
 
@@ -16,11 +16,11 @@ let if' pred thenBody elseBody =
     If(pred, thenBody, elseBody)
 
 let switch
-    (thenBodies: ((VarsContainer -> bool) * Block<'Text,'Label,'CustomStatement>) list)
-    (elseBody: Block<'Text,'Label,'CustomStatement>) =
+    (thenBodies: ((VarsContainer -> bool) * Block<'Content,'Label,'CustomStatement>) list)
+    (elseBody: Block<'Content,'Label,'CustomStatement>) =
 
     List.foldBack
-        (fun ((pred: VarsContainer -> bool), (thenBody: Block<'Text,'Label,'CustomStatement>)) elseBody ->
+        (fun ((pred: VarsContainer -> bool), (thenBody: Block<'Content,'Label,'CustomStatement>)) elseBody ->
             [If(pred, thenBody, elseBody)]
         )
         thenBodies

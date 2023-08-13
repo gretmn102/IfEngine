@@ -11,9 +11,9 @@ type CustomStatementTransformer<'CustomStatementInput,'CustomStatementOutput> =
     'CustomStatementInput -> 'CustomStatementOutput
 
 [<RequireQualifiedAccess>]
-type OutputMsg<'Text,'CustomStatement> =
-    | Print of 'Text
-    | Choices of 'Text * string list
+type OutputMsg<'Content,'CustomStatement> =
+    | Print of 'Content
+    | Choices of 'Content * string list
     | End
     | CustomStatement of 'CustomStatement
 
@@ -22,26 +22,26 @@ type OutputMsg<'Text,'CustomStatement> =
 module OutputMsg =
     val ofAbstractEngine:
         customStatementTransformer: CustomStatementTransformer<'CustomStatement, 'CustomStatementOutput> ->
-        abstractEngine: IfEngine.AbstractEngine<'Text,'Label,'CustomStatement,'CustomStatementArg> ->
-        OutputMsg<'Text,'CustomStatementOutput>
+        abstractEngine: IfEngine.AbstractEngine<'Content,'Label,'CustomStatement,'CustomStatementArg> ->
+        OutputMsg<'Content,'CustomStatementOutput>
 
-type CustomStatementHandler<'Text,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementOutput> =
+type CustomStatementHandler<'Content,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementOutput> =
     {
-        Handle: AbstractEngine.CustomStatementHandle<'Text,'Label,'CustomStatement, 'CustomStatementArg>
-        RestoreBlockFromStack: AbstractEngine.CustomStatementRestore<'Text,'Label,'CustomStatement>
+        Handle: AbstractEngine.CustomStatementHandle<'Content,'Label,'CustomStatement, 'CustomStatementArg>
+        RestoreBlockFromStack: AbstractEngine.CustomStatementRestore<'Content,'Label,'CustomStatement>
         Transformer: ('CustomStatement -> 'CustomStatementOutput)
     }
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module CustomStatementHandler =
     val empty:
-      CustomStatementHandler<'Text,'Label,'CustomStatement,'CustomStatementArg, 'CustomStatementOutput>
+      CustomStatementHandler<'Content,'Label,'CustomStatement,'CustomStatementArg, 'CustomStatementOutput>
 
-type Engine<'Text,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementOutput> =
+type Engine<'Content,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementOutput> =
     {
         AbstractEngine:
-            IfEngine.AbstractEngine<'Text,'Label,'CustomStatement,'CustomStatementArg>
-        GameState: IfEngine.State<'Text,'Label,'CustomStatement>
+            IfEngine.AbstractEngine<'Content,'Label,'CustomStatement,'CustomStatementArg>
+        GameState: IfEngine.State<'Content,'Label,'CustomStatement>
         CustomStatementTransformer:
             CustomStatementTransformer<'CustomStatement,'CustomStatementOutput>
     }
@@ -49,27 +49,27 @@ type Engine<'Text,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementOu
 [<RequireQualifiedAccess>]
 module Engine =
     val nextState:
-       abstractEngine: AbstractEngine<'Text,'Label,'CustomStatement,'CustomStatementArg> ->
-       engine        : Engine<'Text,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementOutput>
-                    -> Engine<'Text,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementOutput>
+       abstractEngine: AbstractEngine<'Content,'Label,'CustomStatement,'CustomStatementArg> ->
+       engine        : Engine<'Content,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementOutput>
+                    -> Engine<'Content,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementOutput>
 
     val create:
-        customStatementHandler: CustomStatementHandler<'Text,'Label,
+        customStatementHandler: CustomStatementHandler<'Content,'Label,
                                                      'CustomStatement,
                                                      'CustomStatementArg,
                                                      'CustomStatementOutput> ->
-        scenario: Scenario<'Text,'Label,'CustomStatement> ->
-        gameState: IfEngine.State<'Text,'Label,'CustomStatement> ->
-        Result<Engine<'Text,'Label,'CustomStatement,'CustomStatementArg,
+        scenario: Scenario<'Content,'Label,'CustomStatement> ->
+        gameState: IfEngine.State<'Content,'Label,'CustomStatement> ->
+        Result<Engine<'Content,'Label,'CustomStatement,'CustomStatementArg,
                       'CustomStatementOutput>,string> when 'Label: comparison
 
     val getCurrentOutputMsg:
-        engine: Engine<'Text,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementOutput> ->
-        OutputMsg<'Text,'CustomStatementOutput>
+        engine: Engine<'Content,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementOutput> ->
+        OutputMsg<'Content,'CustomStatementOutput>
 
     val update:
         msg: InputMsg<'CustomStatementArg> ->
-        engine: Engine<'Text,'Label,'CustomStatement,'CustomStatementArg,
+        engine: Engine<'Content,'Label,'CustomStatement,'CustomStatementArg,
                        'CustomStatementOutput> ->
-        Result<Engine<'Text,'Label,'CustomStatement,'CustomStatementArg,
+        Result<Engine<'Content,'Label,'CustomStatement,'CustomStatementArg,
                       'CustomStatementOutput>,string>

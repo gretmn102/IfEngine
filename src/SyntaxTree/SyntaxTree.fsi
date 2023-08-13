@@ -64,19 +64,19 @@ module VarsContainer =
 
     val createBool: varName: string -> BoolVar
 
-type Block<'Text,'Label,'CustomStatement> =
-    Stmt<'Text,'Label,'CustomStatement> list
+type Block<'Content,'Label,'CustomStatement> =
+    Stmt<'Content,'Label,'CustomStatement> list
 
-and Choice<'Text,'Label,'CustomStatement> = string * Block<'Text,'Label,'CustomStatement>
+and Choice<'Content,'Label,'CustomStatement> = string * Block<'Content,'Label,'CustomStatement>
 
-and Choices<'Text,'Label,'CustomStatement> = Choice<'Text,'Label,'CustomStatement> list
+and Choices<'Content,'Label,'CustomStatement> = Choice<'Content,'Label,'CustomStatement> list
 
-and Stmt<'Text,'Label,'CustomStatement> =
-    | Say of 'Text
-    | InterpolationSay of (VarsContainer -> 'Text)
+and Stmt<'Content,'Label,'CustomStatement> =
+    | Say of 'Content
+    | InterpolationSay of (VarsContainer -> 'Content)
     | Jump of 'Label
-    | Menu of 'Text * Choices<'Text,'Label,'CustomStatement>
-    | If of (VarsContainer -> bool) * Block<'Text,'Label,'CustomStatement> * Block<'Text,'Label,'CustomStatement>
+    | Menu of 'Content * Choices<'Content,'Label,'CustomStatement>
+    | If of (VarsContainer -> bool) * Block<'Content,'Label,'CustomStatement> * Block<'Content,'Label,'CustomStatement>
     | ChangeVars of (VarsContainer -> VarsContainer)
     | Addon of 'CustomStatement
 
@@ -85,12 +85,12 @@ and Stmt<'Text,'Label,'CustomStatement> =
 module Stmt =
     val equals:
       customEquals: ('CustomStatement -> 'CustomStatement -> bool) ->
-        leftStatement: Stmt<'Text,'Label,'CustomStatement> ->
-        rightStatement: Stmt<'Text,'Label,'CustomStatement> -> bool
-        when 'Text: equality and 'Label: equality
+        leftStatement: Stmt<'Content,'Label,'CustomStatement> ->
+        rightStatement: Stmt<'Content,'Label,'CustomStatement> -> bool
+        when 'Content: equality and 'Label: equality
 
-type NamedBlock<'Text,'Label,'CustomStatement> =
-    'Label * Block<'Text,'Label,'CustomStatement>
+type NamedBlock<'Content,'Label,'CustomStatement> =
+    'Label * Block<'Content,'Label,'CustomStatement>
 
-type Scenario<'Text,'Label,'CustomStatement when 'Label: comparison> =
-    Map<'Label,NamedBlock<'Text,'Label,'CustomStatement>>
+type Scenario<'Content,'Label,'CustomStatement when 'Label: comparison> =
+    Map<'Label,NamedBlock<'Content,'Label,'CustomStatement>>

@@ -20,8 +20,8 @@ module Stack =
 
     val push: indexStatement: StatementIndexInBlock -> stack: Stack -> Stack
 
-type BlockStack<'Text,'Label,'CustomStatement> =
-    (StatementIndexInBlock * Block<'Text,'Label,'CustomStatement>) list
+type BlockStack<'Content,'Label,'CustomStatement> =
+    (StatementIndexInBlock * Block<'Content,'Label,'CustomStatement>) list
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
@@ -29,16 +29,16 @@ module BlockStack =
     val ofStack:
         handleCustomStatement: (int ->
                                  'CustomStatement ->
-                                 Result<Block<'Text,'Label,'CustomStatement>, string>) ->
-        startedBlock: Block<'Text,'Label,'CustomStatement> ->
-        stack: Stack -> Result<BlockStack<'Text,'Label,'CustomStatement>,string>
+                                 Result<Block<'Content,'Label,'CustomStatement>, string>) ->
+        startedBlock: Block<'Content,'Label,'CustomStatement> ->
+        stack: Stack -> Result<BlockStack<'Content,'Label,'CustomStatement>,string>
 
     val toStack:
-        stackStatements: BlockStack<'Text,'Label,'CustomStatement> -> Stack
+        stackStatements: BlockStack<'Content,'Label,'CustomStatement> -> Stack
 
     val next:
-        stackStatements: BlockStack<'Text,'Label,'CustomStatement> ->
-        (StatementIndexInBlock * Block<'Text,'Label,'CustomStatement>) list option
+        stackStatements: BlockStack<'Content,'Label,'CustomStatement> ->
+        (StatementIndexInBlock * Block<'Content,'Label,'CustomStatement>) list option
 
 type NamedStack<'Label> =
     {
@@ -54,13 +54,13 @@ module NamedStack =
     val restoreBlock:
         handleCustomStatement: (int ->
                                  'CustomStatement ->
-                                 Result<Block<'Text,'Label,'CustomStatement>, string>) ->
-        scenario: Scenario<'Text,'Label,'CustomStatement> ->
+                                 Result<Block<'Content,'Label,'CustomStatement>, string>) ->
+        scenario: Scenario<'Content,'Label,'CustomStatement> ->
         labelState: NamedStack<'Label> ->
-        Result<BlockStack<'Text,'Label,'CustomStatement>,string>
+        Result<BlockStack<'Content,'Label,'CustomStatement>,string>
         when 'Label: comparison
 
-type State<'Text,'Label,'CustomStatement> =
+type State<'Content,'Label,'CustomStatement> =
     {
         LabelState: NamedStack<'Label>
         Vars: VarsContainer

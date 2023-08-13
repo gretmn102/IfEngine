@@ -2,39 +2,39 @@ namespace IfEngine
 open IfEngine.SyntaxTree
 
 [<RequireQualifiedAccess>]
-type AbstractEngine<'Text, 'Label, 'CustomStatement, 'Arg> =
-    | Print of 'Text * (unit -> AbstractEngine<'Text, 'Label, 'CustomStatement, 'Arg>)
-    | Choices of 'Text * string list * (int -> AbstractEngine<'Text, 'Label, 'CustomStatement, 'Arg>)
+type AbstractEngine<'Content, 'Label, 'CustomStatement, 'Arg> =
+    | Print of 'Content * (unit -> AbstractEngine<'Content, 'Label, 'CustomStatement, 'Arg>)
+    | Choices of 'Content * string list * (int -> AbstractEngine<'Content, 'Label, 'CustomStatement, 'Arg>)
     | End
-    | AddonAct of 'CustomStatement * ('Arg -> AbstractEngine<'Text, 'Label, 'CustomStatement, 'Arg>)
-    | NextState of State<'Text, 'Label, 'CustomStatement> * (unit -> AbstractEngine<'Text, 'Label, 'CustomStatement, 'Arg>)
+    | AddonAct of 'CustomStatement * ('Arg -> AbstractEngine<'Content, 'Label, 'CustomStatement, 'Arg>)
+    | NextState of State<'Content, 'Label, 'CustomStatement> * (unit -> AbstractEngine<'Content, 'Label, 'CustomStatement, 'Arg>)
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module AbstractEngine =
-    type CustomStatementHandle<'Text,'Label,'CustomStatement, 'CustomStatementArg> =
-        State<'Text,'Label,'CustomStatement> -> BlockStack<'Text,'Label,'CustomStatement> -> 'CustomStatementArg -> 'CustomStatement -> (State<'Text,'Label,'CustomStatement> -> AbstractEngine<'Text,'Label,'CustomStatement,'CustomStatementArg>) -> AbstractEngine<'Text,'Label,'CustomStatement,'CustomStatementArg>
+    type CustomStatementHandle<'Content,'Label,'CustomStatement, 'CustomStatementArg> =
+        State<'Content,'Label,'CustomStatement> -> BlockStack<'Content,'Label,'CustomStatement> -> 'CustomStatementArg -> 'CustomStatement -> (State<'Content,'Label,'CustomStatement> -> AbstractEngine<'Content,'Label,'CustomStatement,'CustomStatementArg>) -> AbstractEngine<'Content,'Label,'CustomStatement,'CustomStatementArg>
 
-    type CustomStatementRestore<'Text,'Label,'CustomStatement> =
-        int -> 'CustomStatement -> Result<Block<'Text,'Label,'CustomStatement>, string>
+    type CustomStatementRestore<'Content,'Label,'CustomStatement> =
+        int -> 'CustomStatement -> Result<Block<'Content,'Label,'CustomStatement>, string>
 
     val next:
-        stack: BlockStack<'Text,'Label,'CustomStatement> ->
-        state: State<'Text,'Label,'CustomStatement> ->
-        continues: (State<'Text,'Label,'CustomStatement> -> AbstractEngine<'Text,'Label,'CustomStatement,'CustomStatementArg>) ->
-        AbstractEngine<'Text,'Label,'CustomStatement,'CustomStatementArg>
+        stack: BlockStack<'Content,'Label,'CustomStatement> ->
+        state: State<'Content,'Label,'CustomStatement> ->
+        continues: (State<'Content,'Label,'CustomStatement> -> AbstractEngine<'Content,'Label,'CustomStatement,'CustomStatementArg>) ->
+        AbstractEngine<'Content,'Label,'CustomStatement,'CustomStatementArg>
 
     val down:
         subIndex: int ->
-        block: Block<'Text,'Label,'CustomStatement> ->
-        stack: BlockStack<'Text,'Label,'CustomStatement> ->
-        state: State<'Text,'Label,'CustomStatement> ->
-        continues: (State<'Text,'Label,'CustomStatement> -> AbstractEngine<'Text, 'Label, 'CustomStatement, 'Arg>) ->
-        AbstractEngine<'Text, 'Label, 'CustomStatement, 'Arg>
+        block: Block<'Content,'Label,'CustomStatement> ->
+        stack: BlockStack<'Content,'Label,'CustomStatement> ->
+        state: State<'Content,'Label,'CustomStatement> ->
+        continues: (State<'Content,'Label,'CustomStatement> -> AbstractEngine<'Content, 'Label, 'CustomStatement, 'Arg>) ->
+        AbstractEngine<'Content, 'Label, 'CustomStatement, 'Arg>
 
     val create:
-      addon: CustomStatementHandle<'Text,'Label,'CustomStatement, 'CustomStatementArg> *
-      handleCustomStatement: CustomStatementRestore<'Text,'Label,'CustomStatement> ->
-        scenario: Scenario<'Text,'Label,'CustomStatement> ->
-        state: State<'Text,'Label,'CustomStatement> ->
-        Result<AbstractEngine<'Text,'Label,'CustomStatement,'CustomStatementArg>,string>
+      addon: CustomStatementHandle<'Content,'Label,'CustomStatement, 'CustomStatementArg> *
+      handleCustomStatement: CustomStatementRestore<'Content,'Label,'CustomStatement> ->
+        scenario: Scenario<'Content,'Label,'CustomStatement> ->
+        state: State<'Content,'Label,'CustomStatement> ->
+        Result<AbstractEngine<'Content,'Label,'CustomStatement,'CustomStatementArg>,string>
         when 'Label: comparison

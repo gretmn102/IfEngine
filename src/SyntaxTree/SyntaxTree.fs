@@ -133,24 +133,24 @@ module VarsContainer =
 
     let createBool varName = new BoolVar(varName)
 
-type Block<'Text, 'Label, 'CustomStatement> = Stmt<'Text, 'Label, 'CustomStatement> list
-and Choice<'Text, 'Label, 'CustomStatement> = string * Block<'Text, 'Label, 'CustomStatement>
-and Choices<'Text, 'Label, 'CustomStatement> = Choice<'Text, 'Label, 'CustomStatement> list
-and Stmt<'Text, 'Label, 'CustomStatement> =
-    | Say of 'Text
-    | InterpolationSay of (VarsContainer -> 'Text)
+type Block<'Content, 'Label, 'CustomStatement> = Stmt<'Content, 'Label, 'CustomStatement> list
+and Choice<'Content, 'Label, 'CustomStatement> = string * Block<'Content, 'Label, 'CustomStatement>
+and Choices<'Content, 'Label, 'CustomStatement> = Choice<'Content, 'Label, 'CustomStatement> list
+and Stmt<'Content, 'Label, 'CustomStatement> =
+    | Say of 'Content
+    | InterpolationSay of (VarsContainer -> 'Content)
     | Jump of 'Label
-    | Menu of 'Text * Choices<'Text, 'Label, 'CustomStatement>
-    | If of (VarsContainer -> bool) * Block<'Text, 'Label, 'CustomStatement> * Block<'Text, 'Label, 'CustomStatement>
+    | Menu of 'Content * Choices<'Content, 'Label, 'CustomStatement>
+    | If of (VarsContainer -> bool) * Block<'Content, 'Label, 'CustomStatement> * Block<'Content, 'Label, 'CustomStatement>
     | ChangeVars of (VarsContainer -> VarsContainer)
     | Addon of 'CustomStatement
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module Stmt =
-    let equals customEquals (leftStatement: Stmt<'Text, 'Label, 'CustomStatement>) (rightStatement: Stmt<'Text, 'Label, 'CustomStatement>) =
+    let equals customEquals (leftStatement: Stmt<'Content, 'Label, 'CustomStatement>) (rightStatement: Stmt<'Content, 'Label, 'CustomStatement>) =
         let rec f x =
-            let blockEquals (l: Block<'Text, 'Label, 'CustomStatement>) (r: Block<'Text, 'Label, 'CustomStatement>) =
+            let blockEquals (l: Block<'Content, 'Label, 'CustomStatement>) (r: Block<'Content, 'Label, 'CustomStatement>) =
                 l.Length = r.Length
                 && List.forall2 (fun l r -> f (l, r)) l r
 
@@ -160,10 +160,10 @@ module Stmt =
             | Jump l, Jump r ->
                 l = r
             | Menu(lDesc, lChoices), Menu(rDesc, rChoices) ->
-                let choicesEquals (l: Choices<'Text, 'Label, 'CustomStatement>) (r: Choices<'Text, 'Label, 'CustomStatement>) =
+                let choicesEquals (l: Choices<'Content, 'Label, 'CustomStatement>) (r: Choices<'Content, 'Label, 'CustomStatement>) =
                     l.Length = r.Length
                     && List.forall2
-                        (fun ((lDesc, lBlock): Choice<'Text, 'Label, 'CustomStatement>) ((rDesc, rBlock): Choice<'Text, 'Label, 'CustomStatement>) ->
+                        (fun ((lDesc, lBlock): Choice<'Content, 'Label, 'CustomStatement>) ((rDesc, rBlock): Choice<'Content, 'Label, 'CustomStatement>) ->
                             lDesc = rDesc
                             && blockEquals lBlock rBlock
                         )
@@ -185,7 +185,7 @@ module Stmt =
 
         f (leftStatement, rightStatement)
 
-type NamedBlock<'Text, 'Label, 'CustomStatement> = 'Label * Block<'Text, 'Label, 'CustomStatement>
+type NamedBlock<'Content, 'Label, 'CustomStatement> = 'Label * Block<'Content, 'Label, 'CustomStatement>
 
-type Scenario<'Text, 'Label, 'CustomStatement> when 'Label : comparison =
-    Map<'Label, NamedBlock<'Text, 'Label, 'CustomStatement>>
+type Scenario<'Content, 'Label, 'CustomStatement> when 'Label : comparison =
+    Map<'Label, NamedBlock<'Content, 'Label, 'CustomStatement>>

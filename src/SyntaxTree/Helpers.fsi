@@ -3,15 +3,15 @@ open IfEngine.SyntaxTree
 
 val label:
     labelName: 'Label ->
-    stmts: Stmt<'Text,'Label,'CustomStatement> list ->
-    NamedBlock<'Text,'Label,'CustomStatement>
+    stmts: Stmt<'Content,'Label,'CustomStatement> list ->
+    NamedBlock<'Content,'Label,'CustomStatement>
 
 val jump: labelName: 'Label -> Stmt<'a,'Label,'b>
 
 val choice:
     caption: string ->
-    body: Stmt<'Text,'Label,'CustomStatement> list ->
-    string * Stmt<'Text,'Label,'CustomStatement> list
+    body: Stmt<'Content,'Label,'CustomStatement> list ->
+    string * Stmt<'Content,'Label,'CustomStatement> list
 
 val menu:
     caption: 'a ->
@@ -23,21 +23,21 @@ val if':
     elseBody: Block<'a,'b,'c> -> Stmt<'a,'b,'c>
 
 val switch:
-    thenBodies: list<(VarsContainer -> bool) * Block<'Text,'Label,'CustomStatement>> ->
-    elseBody  : Block<'Text,'Label,'CustomStatement>
-             -> Block<'Text,'Label,'CustomStatement>
+    thenBodies: list<(VarsContainer -> bool) * Block<'Content,'Label,'CustomStatement>> ->
+    elseBody  : Block<'Content,'Label,'CustomStatement>
+             -> Block<'Content,'Label,'CustomStatement>
 
 /// The `:=` operator can be used instead of this function.
 val assign:
     var     : 'Var ->
     newValue: 'Value
-           -> Stmt<'Text,'Label,'CustomStatement>
+           -> Stmt<'Content,'Label,'CustomStatement>
     when 'Var :> IVar<'Value>
 
 val (:=):
     var     : 'Var ->
     newValue: 'Value
-           -> Stmt<'Text,'Label,'CustomStatement>
+           -> Stmt<'Content,'Label,'CustomStatement>
     when 'Var :> IVar<'Value>
 
 /// The `==` operator can be used instead of this function.
@@ -54,5 +54,5 @@ val (==):
 val update:
     var     : 'Var ->
     mapping : ('Value -> 'Value)
-           -> Stmt<'Text,'Label,'CustomStatement>
+           -> Stmt<'Content,'Label,'CustomStatement>
     when 'Var :> IVar<'Value>

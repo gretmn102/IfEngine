@@ -12,27 +12,27 @@ open Utils
 
 // todo: replace `Utils`
 module Utils =
-    let equalPrint exp (cmd: OutputMsg<'Text, 'CustomStatement>) =
+    let equalPrint exp (cmd: OutputMsg<'Content, 'CustomStatement>) =
         match cmd with
         | OutputMsg.Print(text) ->
             Assert.Equal("", exp, text)
         | x ->
             failwithf "expected Print %A but:\n%A" exp x
 
-    let equalMenu exp (cmd: OutputMsg<'Text, 'CustomStatement>) =
+    let equalMenu exp (cmd: OutputMsg<'Content, 'CustomStatement>) =
         match cmd with
         | OutputMsg.Choices(text, selects) ->
             Assert.Equal("", exp, (text, selects))
         | x ->
             failwithf "expected Menu %A\nbut:\n%A" exp x
 
-    let equalEnd (cmd: OutputMsg<'Text, 'CustomStatement>) =
+    let equalEnd (cmd: OutputMsg<'Content, 'CustomStatement>) =
         match cmd with
         | OutputMsg.End -> ()
         | x ->
             failwithf "expected End but:\n%A" x
 
-    let equalCustomStatement (exp: 'CustomStatement) eq (cmd: OutputMsg<'Text, 'CustomStatement>) =
+    let equalCustomStatement (exp: 'CustomStatement) eq (cmd: OutputMsg<'Content, 'CustomStatement>) =
         match cmd with
         | OutputMsg.CustomStatement(customStatement) ->
             if not <| eq exp customStatement then
