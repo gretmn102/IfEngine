@@ -4,9 +4,11 @@ open FsharpMyExtension.ResultExt
 open IfEngine
 open IfEngine.SyntaxTree
 open IfEngine.SyntaxTree.Helpers
+open IfEngine.SyntaxTree.CommonContent
+open IfEngine.SyntaxTree.CommonContent.Helpers
+open Farkdown.Experimental.Helpers
 open IfEngine.Engine
 
-open Tests.SyntaxTree.Helpers
 open Tests.Engine.Utils
 
 type FightParams =
@@ -15,8 +17,6 @@ type FightParams =
         EnemyStrength: int
     }
 
-type Text = string
-
 type Location =
     | Crossroad
     | AngryForest
@@ -24,7 +24,7 @@ type Location =
 
 [<RequireQualifiedAccess>]
 type CustomStatement =
-    | Fight of FightParams * winBody:Block<Text, Location, CustomStatement> * loseBody:Block<Text, Location, CustomStatement>
+    | Fight of FightParams * winBody:Block<Content, Location, CustomStatement> * loseBody:Block<Content, Location, CustomStatement>
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module CustomStatement =
@@ -54,27 +54,48 @@ let fight enemy winBody loseBody =
         CustomStatement.Fight(enemy, winBody, loseBody)
     )
 
-let scenario =
+let health = VarsContainer.createNum "health"
+
+let scenario : Scenario<_, _> =
     [
         label Crossroad [
-            menu "Ты стоишь на развилке двух дорог." [
+            health := 10
+            menu [
+                p [[ text "Ты стоишь на развилке двух дорог." ]]
+            ] [
                 choice "пойти в злой лес" [ jump AngryForest ]
                 choice "Пойти на болото" [ jump Swamp ]
             ]
         ]
 
         label AngryForest [
-            menu "В лесу ты встречаешь крокодила." [
+            menu [
+                p [[ text "В лесу ты встречаешь крокодила." ]]
+            ] [
                 choice "Атаковать" [
+                    let strength = 10
                     fight
-                        { EnemyName = "Крокодил"; EnemyStrength = 10 }
+                        { EnemyName = "Крокодил"; EnemyStrength = strength }
                         [
-                            menu "Ты победил крокодила!" [
+                            update health (fun health -> health - strength)
+                            interSay (fun vars ->
+                                [
+                                    p [
+                                        [ text "Ты победил крокодила!" ]
+                                        [ text "У тебя осталось "; bold (text (sprintf "%dHP" (Var.get health vars))) ]
+                                    ]
+                                ]
+                            )
+                            menu [
+                                p [[ text "Что делаем дальше?" ]]
+                            ] [
                                 choice "Вернуться на развилку" [ jump Crossroad ]
                             ]
                         ]
                         [
-                            say "Крокодил победил тебя..."
+                            say [
+                                p [[ text "Крокодил победил тебя..." ]]
+                            ]
                         ]
                 ]
                 choice "Сбежать на развилку" [ jump Crossroad ]
@@ -82,17 +103,33 @@ let scenario =
         ]
 
         label Swamp [
-            menu "В болоте ты встречаешь оленя." [
+            menu [
+                p [[ text "В болоте ты встречаешь оленя." ]]
+            ] [
                 choice "Атаковать" [
+                    let strength = 5
                     fight
-                        { EnemyName = "Олень"; EnemyStrength = 5 }
+                        { EnemyName = "Олень"; EnemyStrength = strength }
                         [
-                            menu "Ты победил оленя!" [
+                            interSay (fun vars ->
+                                [
+                                    p [
+                                        [ text "Ты победил оленя!" ]
+                                        [ text "У тебя осталось "; bold (text (sprintf "%dHP" (Var.get health vars))) ]
+                                    ]
+                                ]
+                            )
+
+                            menu [
+                                p [[ text "Что делаем дальше?" ]]
+                            ] [
                                 choice "Вернуться на развилку" [ jump Crossroad ]
                             ]
                         ]
                         [
-                            say "Олень победил тебя..."
+                            say [
+                                p [[ text "Олень победил тебя..." ]]
+                            ]
                         ]
                 ]
                 choice "Сбежать на развилку" [ jump Crossroad ]
@@ -101,14 +138,12 @@ let scenario =
     ]
     |> List.map (fun (labelName, body) -> labelName, (labelName, body))
     |> Map.ofList
-    |> fun scenario ->
-        (scenario: Scenario<_, _, CustomStatement>)
 
 [<Tests>]
 let tests =
     testList "TestGameWithCustomStatement" [
         testCase "base" <| fun () ->
-            let customStatementHandler : CustomStatementHandler<Text, Location, CustomStatement, CustomStatementArg, CustomStatementOutput> =
+            let customStatementHandler : CustomStatementHandler<Content, Location, CustomStatement, CustomStatementArg, CustomStatementOutput> =
                 {
                     Handle =
                         fun state blockStack customStatementArg customStatement continues ->
@@ -145,7 +180,7 @@ let tests =
                 |> Result.get
 
             let exp =
-                "Ты стоишь на развилке двух дорог.", [
+                [ p [[ text "Ты стоишь на развилке двух дорог." ]] ], [
                     "пойти в злой лес"
                     "Пойти на болото"
                 ]
@@ -153,7 +188,7 @@ let tests =
 
             let engine = Engine.update (InputMsg.Choice 0) engine |> Result.get // в злой лес
             let exp =
-                "В лесу ты встречаешь крокодила.", [
+                [ p [[ text "В лесу ты встречаешь крокодила." ]] ], [
                     "Атаковать"
                     "Сбежать на развилку"
                 ]
@@ -173,7 +208,7 @@ let tests =
                         (InputMsg.HandleCustomStatement CustomStatementArg.Lose)
                         engine |> Result.get
                 let exp =
-                    "Крокодил победил тебя..."
+                    [ p [[ text "Крокодил победил тебя..." ]]]
                 Engine.getCurrentOutputMsg engine
                 |> equalPrint exp
 
@@ -188,8 +223,23 @@ let tests =
                 Engine.update
                     (InputMsg.HandleCustomStatement CustomStatementArg.Win)
                     engine |> Result.get
+
             let exp =
-                "Ты победил крокодила!", [
+                [
+                    p [
+                        [text "Ты победил крокодила!"]
+                        [ text "У тебя осталось "; bold (text (sprintf "%dHP" 0)) ]
+                    ]
+                ]
+            Engine.getCurrentOutputMsg engine
+            |> equalPrint exp
+
+            let engine =
+                Engine.update
+                    InputMsg.Next
+                    engine |> Result.get
+            let exp =
+                [ p [[text "Что делаем дальше?"]] ], [
                     "Вернуться на развилку"
                 ]
             Engine.getCurrentOutputMsg engine
