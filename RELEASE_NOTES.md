@@ -1,3 +1,6 @@
+## 2.0.0-prerelease.1
+* breaking: remake `State<'Content, 'Label, 'CustomStatement>` to `State<'Content, 'Label>`
+
 ## 1.4.0
 * feat: add `SyntaxTree.CommonContent` type
 
