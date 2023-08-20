@@ -8,23 +8,28 @@ type AbstractEngine<'Content, 'Label, 'CustomStatement, 'Arg> =
     | Choices of 'Content * string list * (int -> AbstractEngine<'Content, 'Label, 'CustomStatement, 'Arg>)
     | End
     | AddonAct of 'CustomStatement * ('Arg -> AbstractEngine<'Content, 'Label, 'CustomStatement, 'Arg>)
-    | NextState of State<'Content, 'Label, 'CustomStatement> * (unit -> AbstractEngine<'Content, 'Label, 'CustomStatement, 'Arg>)
+    | NextState of State<'Content, 'Label> * (unit -> AbstractEngine<'Content, 'Label, 'CustomStatement, 'Arg>)
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module AbstractEngine =
     type CustomStatementHandle<'Content,'Label,'CustomStatement, 'CustomStatementArg> =
-        (State<'Content,'Label,'CustomStatement> ->
+        (State<'Content, 'Label> ->
         BlockStack<'Content,'Label,'CustomStatement> ->
         'CustomStatementArg ->
         'CustomStatement ->
-        (State<'Content,'Label,'CustomStatement> -> AbstractEngine<'Content,'Label,'CustomStatement,'CustomStatementArg>)
+        (State<'Content, 'Label> -> AbstractEngine<'Content,'Label,'CustomStatement,'CustomStatementArg>)
         -> AbstractEngine<'Content,'Label,'CustomStatement,'CustomStatementArg>)
 
     type CustomStatementRestore<'Content,'Label,'CustomStatement> =
         int -> 'CustomStatement -> Result<Block<'Content,'Label,'CustomStatement>, string>
 
-    let next (stack: BlockStack<'Content,'Label,'CustomStatement>) (state: State<'Content,'Label,'CustomStatement>) continues =
+    let next
+        (stack: BlockStack<'Content,'Label,'CustomStatement>)
+        (state: State<'Content, 'Label>)
+        continues
+        : AbstractEngine<'Content,'Label,'CustomStatement,'CustomStatementArg> =
+
         match BlockStack.next stack with
         | Some stackStatements ->
             let state =
@@ -62,7 +67,7 @@ module AbstractEngine =
     let rec create
         (addon: CustomStatementHandle<'Content,'Label,'CustomStatement, 'CustomStatementArg>, handleCustomStatement: CustomStatementRestore<'Content,'Label,'CustomStatement>)
         (scenario: Scenario<'Content, 'Label, 'CustomStatement>)
-        (state: State<'Content, 'Label, 'CustomStatement>) =
+        (state: State<'Content, 'Label>) =
 
         let loop state =
             create (addon, handleCustomStatement) scenario state

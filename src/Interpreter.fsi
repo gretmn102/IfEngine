@@ -60,7 +60,7 @@ module NamedStack =
         Result<BlockStack<'Content,'Label,'CustomStatement>,string>
         when 'Label: comparison
 
-type State<'Content,'Label,'CustomStatement> =
+type State<'Content, 'Label> =
     {
         LabelState: NamedStack<'Label>
         Vars: VarsContainer
@@ -69,4 +69,4 @@ type State<'Content,'Label,'CustomStatement> =
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module State =
-    val init: beginLocation: 'a -> initVars: VarsContainer -> State<'b,'a,'c>
+    val init: beginLocation: 'Label -> initVars: VarsContainer -> State<'Content, 'Label>

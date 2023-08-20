@@ -129,7 +129,7 @@ module NamedStack =
         | None ->
             Error (sprintf "Not found %A label" labelState.Label)
 
-type State<'Content, 'Label, 'CustomStatement> =
+type State<'Content, 'Label> =
     {
         LabelState: NamedStack<'Label>
         Vars: VarsContainer

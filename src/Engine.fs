@@ -58,7 +58,7 @@ module CustomStatementHandler =
 type Engine<'Content, 'Label, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput> =
     {
         AbstractEngine: AbstractEngine<'Content, 'Label, 'CustomStatement, 'CustomStatementArg>
-        GameState: State<'Content, 'Label, 'CustomStatement>
+        GameState: State<'Content, 'Label>
         CustomStatementTransformer: CustomStatementTransformer<'CustomStatement, 'CustomStatementOutput>
     }
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
@@ -82,7 +82,7 @@ module Engine =
     let create
         (customStatementHandler: CustomStatementHandler<'Content, 'Label, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>)
         (scenario: SyntaxTree.Scenario<'Content, 'Label, 'CustomStatement>)
-        (gameState: State<'Content, 'Label, 'CustomStatement>)
+        (gameState: State<'Content, 'Label>)
         : Result<Engine<'Content, 'Label, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>, string> =
 
         AbstractEngine.create

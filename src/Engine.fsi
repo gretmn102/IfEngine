@@ -41,7 +41,7 @@ type Engine<'Content,'Label,'CustomStatement,'CustomStatementArg,'CustomStatemen
     {
         AbstractEngine:
             IfEngine.AbstractEngine<'Content,'Label,'CustomStatement,'CustomStatementArg>
-        GameState: IfEngine.State<'Content,'Label,'CustomStatement>
+        GameState: IfEngine.State<'Content,'Label>
         CustomStatementTransformer:
             CustomStatementTransformer<'CustomStatement,'CustomStatementOutput>
     }
@@ -59,7 +59,7 @@ module Engine =
                                                      'CustomStatementArg,
                                                      'CustomStatementOutput> ->
         scenario: Scenario<'Content,'Label,'CustomStatement> ->
-        gameState: IfEngine.State<'Content,'Label,'CustomStatement> ->
+        gameState: IfEngine.State<'Content,'Label> ->
         Result<Engine<'Content,'Label,'CustomStatement,'CustomStatementArg,
                       'CustomStatementOutput>,string> when 'Label: comparison
 
