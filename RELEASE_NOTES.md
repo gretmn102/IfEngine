@@ -1,3 +1,8 @@
+## 2.0.0-prerelease.2
+* feat: add `NarratorCommonContent`
+* feat: add `mapLabel` to syntax tree
+* feat: add `Scenario.toNamedBlockSeq`
+
 ## 2.0.0-prerelease.1
 * breaking: remake `State<'Content, 'Label, 'CustomStatement>` to `State<'Content, 'Label>`
 
