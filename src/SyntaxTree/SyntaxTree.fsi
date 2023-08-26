@@ -137,3 +137,7 @@ module Scenario =
         labelMapping: ('OldLabel -> 'NewLabel) ->
         scenario: Scenario<'a,'OldLabel,'b> -> Scenario<'a,'NewLabel,'b>
         when 'OldLabel: comparison and 'NewLabel: comparison
+
+    val toNamedBlockSeq:
+        scenario: Scenario<'a,'b,'c> -> seq<NamedBlock<'a,'b,'c>>
+        when 'b: comparison

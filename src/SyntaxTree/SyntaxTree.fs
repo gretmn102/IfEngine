@@ -246,3 +246,7 @@ module Scenario =
                 Map.add key v st
             )
             Map.empty
+
+    let toNamedBlockSeq (scenario: Scenario<_, _, _>) : seq<NamedBlock<'a,'b,'c>> =
+        scenario
+        |> Seq.map (fun x -> x.Value)
