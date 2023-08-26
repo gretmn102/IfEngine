@@ -147,6 +147,19 @@ and Stmt<'Content, 'Label, 'CustomStatement> =
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
+module Choice =
+    let mapLabel blockMapLabel labelMapping ((description, body): Choice<_, 'OldLabel, _>) : Choice<_, 'NewLabel, _> =
+        description, blockMapLabel labelMapping body
+
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+[<RequireQualifiedAccess>]
+module Choices =
+    let mapLabel blockMapLabel labelMapping (choices: Choices<_, 'OldLabel, _>) : Choices<_, 'NewLabel, _> =
+        choices
+        |> List.map (Choice.mapLabel blockMapLabel labelMapping)
+
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+[<RequireQualifiedAccess>]
 module Stmt =
     let equals customEquals (leftStatement: Stmt<'Content, 'Label, 'CustomStatement>) (rightStatement: Stmt<'Content, 'Label, 'CustomStatement>) =
         let rec f x =
@@ -185,7 +198,51 @@ module Stmt =
 
         f (leftStatement, rightStatement)
 
+    let mapLabel blockMapLabel labelMapping (statement: Stmt<_, 'OldLabel, _>) : Stmt<_, 'NewLabel, _> =
+        match statement with
+        | Stmt.Say content ->
+            Stmt.Say content
+        | Stmt.InterpolationSay getContent ->
+            Stmt.InterpolationSay getContent
+        | Stmt.Jump label ->
+            Stmt.Jump (labelMapping label)
+        | Stmt.Menu(content, choices) ->
+            Stmt.Menu(content, Choices.mapLabel blockMapLabel labelMapping choices)
+        | Stmt.If(condition, thenBody, elseBody) ->
+            Stmt.If(condition, blockMapLabel labelMapping thenBody, blockMapLabel labelMapping elseBody)
+        | Stmt.ChangeVars updateVarContainer ->
+            Stmt.ChangeVars updateVarContainer
+        | Stmt.Addon customStatement ->
+            Stmt.Addon customStatement
+
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+[<RequireQualifiedAccess>]
+module Block =
+    let rec mapLabel labelMapping (block: Block<_, 'OldLabel, _>) : Block<_, 'NewLabel, _> =
+        block
+        |> List.map (Stmt.mapLabel mapLabel labelMapping)
+
 type NamedBlock<'Content, 'Label, 'CustomStatement> = 'Label * Block<'Content, 'Label, 'CustomStatement>
+
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+[<RequireQualifiedAccess>]
+module NamedBlock =
+    let mapLabel labelMapping ((label, block): NamedBlock<_, 'OldLabel, _>) : NamedBlock<_, 'NewLabel, _> =
+        let label = labelMapping label
+        label, Block.mapLabel labelMapping block
 
 type Scenario<'Content, 'Label, 'CustomStatement> when 'Label : comparison =
     Map<'Label, NamedBlock<'Content, 'Label, 'CustomStatement>>
+
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+[<RequireQualifiedAccess>]
+module Scenario =
+    let mapLabel labelMapping (scenario: Scenario<_, 'OldLabel, _>) : Scenario<_, 'NewLabel,  _> =
+        scenario
+        |> Seq.fold
+            (fun st (KeyValue(k, v)) ->
+                let key = labelMapping k
+                let v = NamedBlock.mapLabel labelMapping v
+                Map.add key v st
+            )
+            Map.empty

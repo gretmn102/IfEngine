@@ -82,15 +82,58 @@ and Stmt<'Content,'Label,'CustomStatement> =
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
+module Choice =
+    val mapLabel:
+        blockMapLabel: ('a -> Block<'b,'OldLabel,'c> -> Block<'d,'NewLabel,'e>) ->
+        labelMapping: 'a ->
+        string * Block<'b,'OldLabel,'c> -> Choice<'d,'NewLabel,'e>
+
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+[<RequireQualifiedAccess>]
+module Choices =
+    val mapLabel:
+        blockMapLabel: ('a -> Block<'b,'OldLabel,'c> -> Block<'d,'NewLabel,'e>) ->
+        labelMapping: 'a ->
+        choices: Choices<'b,'OldLabel,'c> -> Choices<'d,'NewLabel,'e>
+
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+[<RequireQualifiedAccess>]
 module Stmt =
     val equals:
-      customEquals: ('CustomStatement -> 'CustomStatement -> bool) ->
+        customEquals: ('CustomStatement -> 'CustomStatement -> bool) ->
         leftStatement: Stmt<'Content,'Label,'CustomStatement> ->
         rightStatement: Stmt<'Content,'Label,'CustomStatement> -> bool
         when 'Content: equality and 'Label: equality
 
+    val mapLabel:
+        blockMapLabel: (('OldLabel -> 'NewLabel) -> Block<'a,'OldLabel,'b> -> Block<'a,'NewLabel,'b>) ->
+        labelMapping: ('OldLabel -> 'NewLabel) ->
+        statement: Stmt<'a,'OldLabel,'b> -> Stmt<'a,'NewLabel,'b>
+
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+[<RequireQualifiedAccess>]
+module Block =
+    val mapLabel:
+        labelMapping: ('OldLabel -> 'NewLabel) ->
+        block: Block<'a,'OldLabel,'b> -> Block<'a,'NewLabel,'b>
+
 type NamedBlock<'Content,'Label,'CustomStatement> =
     'Label * Block<'Content,'Label,'CustomStatement>
 
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+[<RequireQualifiedAccess>]
+module NamedBlock =
+    val mapLabel:
+        labelMapping: ('OldLabel -> 'NewLabel) ->
+        'OldLabel * Block<'a,'OldLabel,'b> -> NamedBlock<'a,'NewLabel,'b>
+
 type Scenario<'Content,'Label,'CustomStatement when 'Label: comparison> =
     Map<'Label,NamedBlock<'Content,'Label,'CustomStatement>>
+
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+[<RequireQualifiedAccess>]
+module Scenario =
+    val mapLabel:
+        labelMapping: ('OldLabel -> 'NewLabel) ->
+        scenario: Scenario<'a,'OldLabel,'b> -> Scenario<'a,'NewLabel,'b>
+        when 'OldLabel: comparison and 'NewLabel: comparison
