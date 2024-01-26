@@ -1,3 +1,8 @@
+## 2.0.0-prerelease.3
+* feat: add `Scenario.ofNamedBlockList`
+* feat: add `Scenario.empty`
+* feat: add QuestSystem
+
 ## 2.0.0-prerelease.2
 * feat: add `NarratorCommonContent`
 * feat: add `mapLabel` to syntax tree
