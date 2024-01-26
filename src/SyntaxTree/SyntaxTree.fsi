@@ -133,6 +133,8 @@ type Scenario<'Content,'Label,'CustomStatement when 'Label: comparison> =
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module Scenario =
+    val empty: Scenario<'Content,'Label,'CustomStatement>
+
     val mapLabel:
         labelMapping: ('OldLabel -> 'NewLabel) ->
         scenario: Scenario<'a,'OldLabel,'b> -> Scenario<'a,'NewLabel,'b>

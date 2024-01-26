@@ -237,6 +237,8 @@ type Scenario<'Content, 'Label, 'CustomStatement> when 'Label : comparison =
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module Scenario =
+    let empty : Scenario<'Content,'Label,'CustomStatement> = Map.empty
+
     let mapLabel labelMapping (scenario: Scenario<_, 'OldLabel, _>) : Scenario<_, 'NewLabel,  _> =
         scenario
         |> Seq.fold

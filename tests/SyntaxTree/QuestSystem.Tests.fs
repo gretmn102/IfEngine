@@ -6,8 +6,6 @@ open IfEngine.SyntaxTree.Helpers
 
 // todo: add to Scenario
 module Scenario =
-    let empty : Scenario<'Content,'Label,'CustomStatement> = Map.empty
-
     let ofNamedBlockList (lst: NamedBlock<_,_,_> list) : Scenario<'Content,'Label,'CustomStatement> =
         lst
         |> List.map (fun (labelName, body) -> labelName, (labelName, body))
