@@ -143,3 +143,7 @@ module Scenario =
     val toNamedBlockSeq:
         scenario: Scenario<'a,'b,'c> -> seq<NamedBlock<'a,'b,'c>>
         when 'b: comparison
+
+    val ofNamedBlockList:
+        namedBlocks: list<NamedBlock<'Content,'Label,'CustomStatement>>
+        -> Scenario<'Content,'Label,'CustomStatement>

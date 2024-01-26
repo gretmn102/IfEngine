@@ -4,13 +4,6 @@ open Fuchu
 open IfEngine.SyntaxTree
 open IfEngine.SyntaxTree.Helpers
 
-// todo: add to Scenario
-module Scenario =
-    let ofNamedBlockList (lst: NamedBlock<_,_,_> list) : Scenario<'Content,'Label,'CustomStatement> =
-        lst
-        |> List.map (fun (labelName, body) -> labelName, (labelName, body))
-        |> Map.ofList
-
 type DungeonQuest =
     | PressurePlate = 0
     | SwingingBlade = 1

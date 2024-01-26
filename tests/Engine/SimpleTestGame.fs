@@ -22,7 +22,7 @@ type LabelName =
 
 let beginLoc = VariablesDefinition
 
-let scenario =
+let scenario : Scenario<string,LabelName,unit> =
     [
         label VariablesDefinition [
             applesCount := 0
@@ -78,10 +78,7 @@ let scenario =
             ]
         ]
     ]
-    |> List.map (fun (labelName, body) -> labelName, (labelName, body))
-    |> Map.ofList
-    |> fun scenario ->
-        (scenario: Scenario<_, _, CustomStatement>)
+    |> Scenario.ofNamedBlockList
 
 [<Tests>]
 let test =

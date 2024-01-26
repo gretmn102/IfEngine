@@ -136,8 +136,7 @@ let scenario : Scenario<_, _> =
             ]
         ]
     ]
-    |> List.map (fun (labelName, body) -> labelName, (labelName, body))
-    |> Map.ofList
+    |> Scenario.ofNamedBlockList
 
 [<Tests>]
 let tests =

@@ -252,3 +252,8 @@ module Scenario =
     let toNamedBlockSeq (scenario: Scenario<_, _, _>) : seq<NamedBlock<'a,'b,'c>> =
         scenario
         |> Seq.map (fun x -> x.Value)
+
+    let ofNamedBlockList (namedBlocks: NamedBlock<_,_,_> list) : Scenario<'Content,'Label,'CustomStatement> =
+        namedBlocks
+        |> List.map (fun (labelName, body) -> labelName, (labelName, body))
+        |> Map.ofList
