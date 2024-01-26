@@ -15,6 +15,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="SyntaxTree\QuestSystem.Tests.fs" />
     <Compile Include="SyntaxTree\Helpers.fs" />
     <Compile Include="Engine\Utils.fs" />
     <Compile Include="Engine\SimpleTestGame.fs" />

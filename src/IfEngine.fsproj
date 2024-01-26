@@ -16,6 +16,8 @@
     <Compile Include="SyntaxTree\CommonContent.fs" />
     <Compile Include="SyntaxTree\NarratorCommonContent.fsi" />
     <Compile Include="SyntaxTree\NarratorCommonContent.fs" />
+    <Compile Include="SyntaxTree\QuestSystem.fsi" />
+    <Compile Include="SyntaxTree\QuestSystem.fs" />
     <Compile Include="SyntaxTree\Helpers.fsi" />
     <Compile Include="SyntaxTree\Helpers.fs" />
     <Compile Include="Interpreter.fsi" />

@@ -8,7 +8,7 @@ nuget FuChu
 
 source https://gitlab.com/api/v4/projects/28574921/packages/nuget/index.json
 nuget FSharpMyExt prerelease
-nuget Farkdown prerelease
+nuget Farkdown
 
 group Build
     source https://api.nuget.org/v3/index.json
