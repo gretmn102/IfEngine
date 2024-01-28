@@ -33,32 +33,32 @@ val switch:
 val assign:
     var: 'Var ->
     newValue: 'Value ->
-        Stmt<'C,'L,VarsContainer,'CS>
-        when 'Var :> IVar<'Value>
+        Stmt<'C,'L,VarsContainer<'Custom> ,'CS>
+        when 'Var :> IVar<'Custom, 'Value>
 
 val (:=):
     var: 'Var ->
     newValue: 'Value ->
-        Stmt<'C,'L,VarsContainer,'CS>
-        when 'Var :> IVar<'Value>
+        Stmt<'C,'L,VarsContainer<'Custom> ,'CS>
+        when 'Var :> IVar<'Custom, 'Value>
 
 /// The `==` operator can be used instead of this function.
 val equals:
     var: 'Var ->
     otherValue: 'Value ->
-    varsContainer: VarsContainer ->
+    varsContainer: VarsContainer<'Custom>  ->
         bool
-        when 'Var :> IVar<'Value> and 'Value : equality
+        when 'Var :> IVar<'Custom, 'Value> and 'Value : equality
 
 val (==):
     var: 'Var ->
     otherValue: 'Value ->
-    varsContainer: VarsContainer ->
+    varsContainer: VarsContainer<'Custom>  ->
         bool
-        when 'Var :> IVar<'Value> and 'Value: equality
+        when 'Var :> IVar<'Custom, 'Value> and 'Value: equality
 
 val update:
     var: 'Var ->
     mapping: ('Value -> 'Value) ->
-        Stmt<'C,'L,VarsContainer,'CS>
-        when 'Var :> IVar<'Value>
+        Stmt<'C,'L,VarsContainer<'Custom> ,'CS>
+        when 'Var :> IVar<'Custom, 'Value>

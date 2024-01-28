@@ -1,65 +1,82 @@
 namespace IfEngine.SyntaxTree
 
 [<RequireQualifiedAccess>]
-type Var =
+type Var<'Custom> =
     | String of string
     | Bool of bool
     | Num of int
+    | Custom of 'Custom
 
-type VarsContainer = Map<string,Var>
+type VarsContainer<'Custom> = Map<string, Var<'Custom>>
+type VarsContainer = Map<string, Var<unit>>
 
-type IVar<'Value> =
-    abstract Get: VarsContainer -> 'Value
-
+type IVar<'Custom, 'Value> =
+    abstract Get: VarsContainer<'Custom> -> 'Value
+    abstract Set: 'Value -> VarsContainer<'Custom> -> VarsContainer<'Custom>
+    abstract Update: ('Value -> 'Value) -> VarsContainer<'Custom> -> VarsContainer<'Custom>
     abstract GetVarName: unit -> string
 
-    abstract Set: 'Value -> VarsContainer -> VarsContainer
-
-    abstract Update: ('Value -> 'Value) -> VarsContainer -> VarsContainer
-
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+[<RequireQualifiedAccess>]
 module Var =
-    val get: var: #IVar<'Value> -> varsContainer: VarsContainer -> 'Value
+    val get:
+        var: #IVar<'Custom, 'Value> ->
+        varsContainer: VarsContainer<'Custom> ->
+            'Value
 
     val set:
-      var: #IVar<'Value> ->
-        newValue: 'Value -> varsContainer: VarsContainer -> VarsContainer
+        var: #IVar<'Custom, 'Value> ->
+        newValue: 'Value ->
+        varsContainer: VarsContainer<'Custom> ->
+            VarsContainer<'Custom>
 
     val update:
-      var: #IVar<'Value> ->
+        var: #IVar<'Custom, 'Value> ->
         mapping: ('Value -> 'Value) ->
-        varsContainer: VarsContainer -> VarsContainer
+        varsContainer: VarsContainer<'Custom> ->
+            VarsContainer<'Custom>
 
     val equals:
         var: 'Var ->
         otherValue: 'Value ->
-        varsContainer: VarsContainer -> bool
-        when 'Var :> IVar<'Value> and 'Value : equality
+        varsContainer: VarsContainer<'Custom> -> bool
+        when 'Var :> IVar<'Custom, 'Value> and 'Value : equality
 
-    val getVarName: var: #IVar<'Value> -> string
+    val getVarName: var: #IVar<'Custom, 'Value> -> string
 
-type NumVar =
-    interface IVar<int>
-    new: varName: string -> NumVar
+type NumVar<'Custom> =
+    interface IVar<'Custom, int>
+    new: varName: string -> NumVar<'Custom>
 
-type StringVar =
-    interface IVar<string>
-    new: varName: string -> StringVar
+type NumVar = NumVar<unit>
 
-type BoolVar =
-    interface IVar<bool>
-    new: varName: string -> BoolVar
+type StringVar<'Custom> =
+    interface IVar<'Custom, string>
+    new: varName: string -> StringVar<'Custom>
 
-type EnumVar<'T when 'T: enum<int32>> =
-    interface IVar<'T>
-    new: varName: string -> EnumVar<'T>
+type StringVar = StringVar<unit>
 
+type BoolVar<'Custom> =
+    interface IVar<'Custom, bool>
+    new: varName: string -> BoolVar<'Custom>
+
+type BoolVar = BoolVar<unit>
+
+type EnumVar<'Custom, 'T when 'T: enum<int32>> =
+    interface IVar<'Custom, 'T>
+    new: varName: string -> EnumVar<'Custom, 'T>
+
+type EnumVar<'T when 'T: enum<int32>> = EnumVar<unit, 'T>
+
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+[<RequireQualifiedAccess>]
 module VarsContainer =
-    val empty: VarsContainer
+    val empty: VarsContainer<'Custom>
 
-    val createNum: varName: string -> NumVar
+    val createNum: varName: string -> NumVar<'Custom>
 
-    val createEnum: varName: string -> EnumVar<'T> when 'T: enum<int32>
+    val createEnum: varName: string -> EnumVar<'Custom, 'T> when 'T: enum<int32>
 
-    val createString: varName: string -> StringVar
+    val createString: varName: string -> StringVar<'Custom>
 
-    val createBool: varName: string -> BoolVar
+    val createBool: varName: string -> BoolVar<'Custom>

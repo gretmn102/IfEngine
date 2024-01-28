@@ -1,39 +1,41 @@
 namespace IfEngine.SyntaxTree
 
 [<RequireQualifiedAccess>]
-type Var =
+type Var<'Custom> =
     | String of string
     | Bool of bool
     | Num of int
+    | Custom of 'Custom
 
-type VarsContainer = Map<string, Var>
+type VarsContainer<'Custom> = Map<string, Var<'Custom>>
+type VarsContainer = Map<string, Var<unit>>
 
-type IVar<'Value> =
-    abstract Get: VarsContainer -> 'Value
-    abstract Set: 'Value -> VarsContainer -> VarsContainer
-    abstract Update: ('Value -> 'Value) -> VarsContainer -> VarsContainer
+type IVar<'Custom, 'Value> =
+    abstract Get: VarsContainer<'Custom> -> 'Value
+    abstract Set: 'Value -> VarsContainer<'Custom> -> VarsContainer<'Custom>
+    abstract Update: ('Value -> 'Value) -> VarsContainer<'Custom> -> VarsContainer<'Custom>
     abstract GetVarName: unit -> string
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module Var =
-    let get (var: #IVar<'Value>) varsContainer =
+    let get (var: #IVar<'Custom, 'Value>) (varsContainer: VarsContainer<'Custom>) : 'Value =
         var.Get varsContainer
 
-    let set (var: #IVar<'Value>) newValue varsContainer =
+    let set (var: #IVar<'Custom, 'Value>) newValue varsContainer =
         var.Set newValue varsContainer
 
-    let update (var: #IVar<'Value>) mapping varsContainer =
+    let update (var: #IVar<'Custom, 'Value>) mapping varsContainer =
         var.Update mapping varsContainer
 
-    let equals (var: #IVar<'Value>) otherValue varsContainer =
+    let equals (var: #IVar<'Custom, 'Value>) otherValue varsContainer =
         (get var varsContainer) = otherValue
 
-    let getVarName (var: #IVar<'Value>) =
+    let getVarName (var: #IVar<'Custom, 'Value>) =
         var.GetVarName()
 
-type NumVar(varName: string) =
-    interface IVar<int> with
+type NumVar<'Custom>(varName: string) =
+    interface IVar<'Custom, int> with
         member __.GetVarName () =
             varName
 
@@ -52,8 +54,10 @@ type NumVar(varName: string) =
                 (mapping (Var.get this varsContainer))
                 varsContainer
 
-type StringVar(varName: string) =
-    interface IVar<string> with
+type NumVar = NumVar<unit>
+
+type StringVar<'Custom>(varName: string) =
+    interface IVar<'Custom, string> with
         member __.GetVarName () =
             varName
 
@@ -72,8 +76,10 @@ type StringVar(varName: string) =
                 (mapping (Var.get this varsContainer))
                 varsContainer
 
-type BoolVar(varName: string) =
-    interface IVar<bool> with
+type StringVar = StringVar<unit>
+
+type BoolVar<'Custom>(varName: string) =
+    interface IVar<'Custom, bool> with
         member __.GetVarName () =
             varName
 
@@ -92,8 +98,10 @@ type BoolVar(varName: string) =
                 (mapping (Var.get this varsContainer))
                 varsContainer
 
-type EnumVar<'T when 'T: enum<int32>>(varName: string)  =
-    interface IVar<'T> with
+type BoolVar = BoolVar<unit>
+
+type EnumVar<'Custom, 'T when 'T: enum<int32>>(varName: string)  =
+    interface IVar<'Custom, 'T> with
         member __.Get varsContainer =
             let enum (x: int) =
                 #if FABLE_COMPILER
@@ -120,15 +128,17 @@ type EnumVar<'T when 'T: enum<int32>>(varName: string)  =
                 (mapping (Var.get this varsContainer))
                 varsContainer
 
+type EnumVar<'T when 'T: enum<int32>> = EnumVar<unit, 'T>
+
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module VarsContainer =
-    let empty: VarsContainer = Map.empty
+    let empty: VarsContainer<'Custom> = Map.empty
 
-    let createNum varName = new NumVar(varName)
+    let createNum varName = new NumVar<'Custom>(varName)
 
-    let createEnum varName = new EnumVar<'T>(varName)
+    let createEnum varName = new EnumVar<'Custom, 'T>(varName)
 
-    let createString varName = new StringVar(varName)
+    let createString varName = new StringVar<'Custom>(varName)
 
-    let createBool varName = new BoolVar(varName)
+    let createBool varName = new BoolVar<'Custom>(varName)

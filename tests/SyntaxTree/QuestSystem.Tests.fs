@@ -9,7 +9,7 @@ type DungeonQuest =
     | SwingingBlade = 1
     | DartSpewingStatues = 2
 
-let dungeonQuest = VarsContainer.createEnum "DungeonQuest"
+let dungeonQuest : EnumVar<_> = VarsContainer.createEnum "DungeonQuest"
 
 type SaveShipQuest =
     | One = 0

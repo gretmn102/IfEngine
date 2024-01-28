@@ -26,17 +26,17 @@ let switch
         thenBodies
         elseBody
 
-let assign (var: #IVar<_>) newValue =
+let assign (var: #IVar<_,_>) newValue =
     ChangeVars (Var.set var newValue)
 
-let (:=) (var: #IVar<_>) newValue =
+let (:=) (var: #IVar<_,_>) newValue =
     assign var newValue
 
-let equals (var: #IVar<_>) otherValue varsContainer =
+let equals (var: #IVar<_,_>) otherValue varsContainer =
     Var.equals var otherValue varsContainer
 
-let (==) (var: #IVar<_>) otherValue varsContainer =
+let (==) (var: #IVar<_,_>) otherValue varsContainer =
     Var.equals var otherValue varsContainer
 
-let update (var: #IVar<_>) mapping =
+let update (var: #IVar<_,_>) mapping =
     ChangeVars (Var.update var mapping)
