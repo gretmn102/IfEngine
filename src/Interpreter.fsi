@@ -20,8 +20,8 @@ module Stack =
 
     val push: indexStatement: StatementIndexInBlock -> stack: Stack -> Stack
 
-type BlockStack<'Content,'Label,'CustomStatement> =
-    (StatementIndexInBlock * Block<'Content,'Label,'CustomStatement>) list
+type BlockStack<'Content,'Label,'VarsContainer,'CustomStatement> =
+    (StatementIndexInBlock * Block<'Content,'Label,'VarsContainer,'CustomStatement>) list
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
@@ -29,16 +29,16 @@ module BlockStack =
     val ofStack:
         handleCustomStatement: (int ->
                                  'CustomStatement ->
-                                 Result<Block<'Content,'Label,'CustomStatement>, string>) ->
-        startedBlock: Block<'Content,'Label,'CustomStatement> ->
-        stack: Stack -> Result<BlockStack<'Content,'Label,'CustomStatement>,string>
+                                 Result<Block<'Content,'Label,'VarsContainer,'CustomStatement>, string>) ->
+        startedBlock: Block<'Content,'Label,'VarsContainer,'CustomStatement> ->
+        stack: Stack -> Result<BlockStack<'Content,'Label,'VarsContainer,'CustomStatement>,string>
 
     val toStack:
-        stackStatements: BlockStack<'Content,'Label,'CustomStatement> -> Stack
+        stackStatements: BlockStack<'Content,'Label,'VarsContainer,'CustomStatement> -> Stack
 
     val next:
-        stackStatements: BlockStack<'Content,'Label,'CustomStatement> ->
-        (StatementIndexInBlock * Block<'Content,'Label,'CustomStatement>) list option
+        stackStatements: BlockStack<'Content,'Label,'VarsContainer,'CustomStatement> ->
+        (StatementIndexInBlock * Block<'Content,'Label,'VarsContainer,'CustomStatement>) list option
 
 type NamedStack<'Label> =
     {
@@ -52,21 +52,25 @@ module NamedStack =
     val create: label: 'Label -> stack: Stack -> NamedStack<'Label>
 
     val restoreBlock:
-        handleCustomStatement: (int ->
-                                 'CustomStatement ->
-                                 Result<Block<'Content,'Label,'CustomStatement>, string>) ->
-        scenario: Scenario<'Content,'Label,'CustomStatement> ->
+        handleCustomStatement:
+            (int ->
+            'CS ->
+                Result<Block<'Content,'Label,'VarsContainer,'CS>, string>) ->
+        scenario: Scenario<'Content,'Label,'VarsContainer,'CS> ->
         labelState: NamedStack<'Label> ->
-        Result<BlockStack<'Content,'Label,'CustomStatement>,string>
-        when 'Label: comparison
+            Result<BlockStack<'Content,'Label,'VarsContainer,'CS>,string>
+            when 'Label: comparison
 
-type State<'Content, 'Label> =
+type State<'Content, 'Label, 'VarsContainer> =
     {
         LabelState: NamedStack<'Label>
-        Vars: VarsContainer
+        Vars: 'VarsContainer
     }
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module State =
-    val init: beginLocation: 'Label -> initVars: VarsContainer -> State<'Content, 'Label>
+    val init:
+        beginLocation: 'L ->
+        initVars: 'V ->
+            State<'C, 'L, 'V>

@@ -24,7 +24,7 @@ type Location =
 
 [<RequireQualifiedAccess>]
 type CustomStatement =
-    | Fight of FightParams * winBody:Block<Content, Location, CustomStatement> * loseBody:Block<Content, Location, CustomStatement>
+    | Fight of FightParams * winBody:Block<Content, Location, VarsContainer, CustomStatement> * loseBody:Block<Content, Location, VarsContainer, CustomStatement>
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module CustomStatement =
@@ -56,7 +56,7 @@ let fight enemy winBody loseBody =
 
 let health = VarsContainer.createNum "health"
 
-let scenario : Scenario<_, _> =
+let scenario : Scenario<_, _, _> =
     [
         label Crossroad [
             health := 10
@@ -142,7 +142,7 @@ let scenario : Scenario<_, _> =
 let tests =
     testList "TestGameWithCustomStatement" [
         testCase "base" <| fun () ->
-            let customStatementHandler : CustomStatementHandler<Content, Location, CustomStatement, CustomStatementArg, CustomStatementOutput> =
+            let customStatementHandler : CustomStatementHandler<Content, Location, _, CustomStatement, CustomStatementArg, CustomStatementOutput> =
                 {
                     Handle =
                         fun state blockStack customStatementArg customStatement continues ->

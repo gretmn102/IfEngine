@@ -2,57 +2,63 @@ module IfEngine.SyntaxTree.Helpers
 open IfEngine.SyntaxTree
 
 val label:
-    labelName: 'Label ->
-    stmts: Stmt<'Content,'Label,'CustomStatement> list ->
-    NamedBlock<'Content,'Label,'CustomStatement>
+    labelName: 'L ->
+    stmts: Stmt<'C,'L,'V,'CS> list ->
+        NamedBlock<'C,'L,'V,'CS>
 
-val jump: labelName: 'Label -> Stmt<'a,'Label,'b>
+val jump: labelName: 'L -> Stmt<'C,'L, 'V, 'CS>
 
 val choice:
     caption: string ->
-    body: Stmt<'Content,'Label,'CustomStatement> list ->
-    string * Stmt<'Content,'Label,'CustomStatement> list
+    body: Stmt<'C,'L,'V,'CS> list ->
+        Choice<'C,'L,'V,'CS>
 
 val menu:
-    caption: 'a ->
-    xs: Choices<'a,'b,'c> -> Stmt<'a,'b,'c>
+    caption: 'C ->
+    xs: Choices<'C,'L,'V,'CS> ->
+        Stmt<'C,'L,'V,'CS>
 
 val if':
-    pred: (VarsContainer -> bool) ->
-    thenBody: Block<'a,'b,'c> ->
-    elseBody: Block<'a,'b,'c> -> Stmt<'a,'b,'c>
+    pred: ('V -> bool) ->
+    thenBody: Block<'C,'L,'V,'CS> ->
+    elseBody: Block<'C,'L,'V,'CS> ->
+        Stmt<'C,'L,'V,'CS>
 
 val switch:
-    thenBodies: list<(VarsContainer -> bool) * Block<'Content,'Label,'CustomStatement>> ->
-    elseBody  : Block<'Content,'Label,'CustomStatement>
-             -> Block<'Content,'Label,'CustomStatement>
+    thenBodies: list<('V -> bool) * Block<'C,'L,'V,'CS>> ->
+    elseBody: Block<'C,'L,'V,'CS> ->
+        Block<'C,'L,'V,'CS>
 
 /// The `:=` operator can be used instead of this function.
 val assign:
-    var     : 'Var ->
-    newValue: 'Value
-           -> Stmt<'Content,'Label,'CustomStatement>
-    when 'Var :> IVar<'Value>
+    var: 'Var ->
+    newValue: 'Value ->
+        Stmt<'C,'L,VarsContainer,'CS>
+        when 'Var :> IVar<'Value>
 
 val (:=):
-    var     : 'Var ->
-    newValue: 'Value
-           -> Stmt<'Content,'Label,'CustomStatement>
-    when 'Var :> IVar<'Value>
+    var: 'Var ->
+    newValue: 'Value ->
+        Stmt<'C,'L,VarsContainer,'CS>
+        when 'Var :> IVar<'Value>
 
 /// The `==` operator can be used instead of this function.
 val equals:
     var: 'Var ->
-    otherValue: 'Value -> varsContainer: VarsContainer -> bool
-    when 'Var :> IVar<'Value> and 'Value : equality
+    otherValue: 'Value ->
+    varsContainer: VarsContainer ->
+        bool
+        when 'Var :> IVar<'Value> and 'Value : equality
 
 val (==):
     var: 'Var ->
-    otherValue: 'Value -> varsContainer: VarsContainer -> bool
-    when 'Var :> IVar<'Value> and 'Value: equality
+    otherValue: 'Value ->
+    varsContainer: VarsContainer ->
+        bool
+        when 'Var :> IVar<'Value> and 'Value: equality
 
 val update:
-    var     : 'Var ->
-    mapping : ('Value -> 'Value)
-           -> Stmt<'Content,'Label,'CustomStatement>
-    when 'Var :> IVar<'Value>
+    var: 'Var ->
+    mapping: ('Value -> 'Value) ->
+        Stmt<'C,'L,VarsContainer,'CS>
+        when 'Var :> IVar<'Value>

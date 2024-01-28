@@ -9,7 +9,7 @@ open Tests.SyntaxTree.Helpers
 
 [<Tests>]
 let InterpTests =
-    let mock: Block<_, unit, unit> =
+    let mock: Block<_,_,unit,unit> =
         [
             say "0"
             say "1"

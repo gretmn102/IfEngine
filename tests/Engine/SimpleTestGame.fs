@@ -22,7 +22,7 @@ type LabelName =
 
 let beginLoc = VariablesDefinition
 
-let scenario : Scenario<string,LabelName,unit> =
+let scenario : Scenario<string,LabelName,VarsContainer,unit> =
     [
         label VariablesDefinition [
             applesCount := 0

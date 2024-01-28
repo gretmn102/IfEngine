@@ -19,7 +19,7 @@ type OutputMsg<'Content, 'CustomStatement> =
 module OutputMsg =
     let ofAbstractEngine
         (customStatementTransformer: CustomStatementTransformer<'CustomStatement, 'CustomStatementOutput>)
-        (abstractEngine: AbstractEngine<'Content,'Label,'CustomStatement,'CustomStatementArg>) =
+        (abstractEngine: AbstractEngine<'Content, 'Label, 'VarsContainer, 'CustomStatement, 'CustomStatementArg>) =
 
         match abstractEngine with
         | AbstractEngine.Print(text, _) ->
@@ -33,16 +33,16 @@ module OutputMsg =
         | AbstractEngine.NextState(_, _) ->
             failwith "NextState is not implemented"
 
-type CustomStatementHandler<'Content, 'Label, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput> =
+type CustomStatementHandler<'Content, 'Label, 'VarsContainer, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput> =
     {
-        Handle: AbstractEngine.CustomStatementHandle<'Content,'Label,'CustomStatement, 'CustomStatementArg>
-        RestoreBlockFromStack: AbstractEngine.CustomStatementRestore<'Content,'Label,'CustomStatement>
+        Handle: AbstractEngine.CustomStatementHandle<'Content, 'Label, 'VarsContainer, 'CustomStatement, 'CustomStatementArg>
+        RestoreBlockFromStack: AbstractEngine.CustomStatementRestore<'Content,'Label,'VarsContainer,'CustomStatement>
         Transformer: 'CustomStatement -> 'CustomStatementOutput
     }
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module CustomStatementHandler =
-    let empty : CustomStatementHandler<'Content, 'Label, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput> =
+    let empty : CustomStatementHandler<'Content, 'Label, 'VarsContainer, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput> =
         {
             Handle =
                 fun state blockStack customStatementArg customStatement continues ->
@@ -55,10 +55,10 @@ module CustomStatementHandler =
                     failwithf "CustomStatementHandler.Transformer Not implemented"
         }
 
-type Engine<'Content, 'Label, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput> =
+type Engine<'Content, 'Label, 'VarsContainer, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput> =
     {
-        AbstractEngine: AbstractEngine<'Content, 'Label, 'CustomStatement, 'CustomStatementArg>
-        GameState: State<'Content, 'Label>
+        AbstractEngine: AbstractEngine<'Content, 'Label, 'VarsContainer, 'CustomStatement, 'CustomStatementArg>
+        GameState: State<'Content, 'Label, 'VarsContainer>
         CustomStatementTransformer: CustomStatementTransformer<'CustomStatement, 'CustomStatementOutput>
     }
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
@@ -66,7 +66,7 @@ type Engine<'Content, 'Label, 'CustomStatement, 'CustomStatementArg, 'CustomStat
 module Engine =
     let nextState
         abstractEngine
-        (engine: Engine<'Content, 'Label, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>) =
+        (engine: Engine<'Content, 'Label, 'VarsContainer, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>) =
 
         let rec nextState gameState = function
             | AbstractEngine.NextState(newGameState, next) ->
@@ -80,10 +80,10 @@ module Engine =
         nextState engine.GameState abstractEngine
 
     let create
-        (customStatementHandler: CustomStatementHandler<'Content, 'Label, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>)
-        (scenario: SyntaxTree.Scenario<'Content, 'Label, 'CustomStatement>)
-        (gameState: State<'Content, 'Label>)
-        : Result<Engine<'Content, 'Label, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>, string> =
+        (customStatementHandler: CustomStatementHandler<'Content, 'Label, 'VarsContainer, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>)
+        (scenario: SyntaxTree.Scenario<'Content,'Label,'VarsContainer,'CustomStatement>)
+        (gameState: State<'Content, 'Label, 'VarsContainer>)
+        : Result<Engine<'Content, 'Label, 'VarsContainer, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>, string> =
 
         AbstractEngine.create
             (customStatementHandler.Handle, customStatementHandler.RestoreBlockFromStack)
@@ -102,15 +102,15 @@ module Engine =
         )
 
     let getCurrentOutputMsg
-        (engine: Engine<'Content, 'Label, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>)
+        (engine: Engine<'Content, 'Label, 'VarsContainer, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>)
         : OutputMsg<'Content, 'CustomStatementOutput> =
 
         OutputMsg.ofAbstractEngine engine.CustomStatementTransformer engine.AbstractEngine
 
     let update
         (msg: InputMsg<'CustomStatementArg>)
-        (engine: Engine<'Content, 'Label, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>)
-        : Result<Engine<'Content, 'Label, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>, string> =
+        (engine: Engine<'Content, 'Label, 'VarsContainer, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>)
+        : Result<Engine<'Content, 'Label, 'VarsContainer, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>, string> =
 
         let nextState abstractEngine = nextState abstractEngine engine |> Ok
 

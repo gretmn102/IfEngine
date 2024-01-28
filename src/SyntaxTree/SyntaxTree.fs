@@ -1,36 +1,36 @@
 namespace IfEngine.SyntaxTree
 
-type Block<'Content, 'Label, 'CustomStatement> = Stmt<'Content, 'Label, 'CustomStatement> list
-and Choice<'Content, 'Label, 'CustomStatement> = string * Block<'Content, 'Label, 'CustomStatement>
-and Choices<'Content, 'Label, 'CustomStatement> = Choice<'Content, 'Label, 'CustomStatement> list
-and Stmt<'Content, 'Label, 'CustomStatement> =
+type Block<'Content,'Label,'VarsContainer,'CustomStatement> = Stmt<'Content,'Label,'VarsContainer,'CustomStatement> list
+and Choice<'Content,'Label,'VarsContainer,'CustomStatement> = string * Block<'Content,'Label,'VarsContainer,'CustomStatement>
+and Choices<'Content,'Label,'VarsContainer,'CustomStatement> = Choice<'Content,'Label,'VarsContainer,'CustomStatement> list
+and Stmt<'Content,'Label,'VarsContainer,'CustomStatement> =
     | Say of 'Content
-    | InterpolationSay of (VarsContainer -> 'Content)
+    | InterpolationSay of ('VarsContainer -> 'Content)
     | Jump of 'Label
-    | Menu of 'Content * Choices<'Content, 'Label, 'CustomStatement>
-    | If of (VarsContainer -> bool) * Block<'Content, 'Label, 'CustomStatement> * Block<'Content, 'Label, 'CustomStatement>
-    | ChangeVars of (VarsContainer -> VarsContainer)
+    | Menu of 'Content * Choices<'Content,'Label,'VarsContainer,'CustomStatement>
+    | If of ('VarsContainer -> bool) * Block<'Content,'Label,'VarsContainer,'CustomStatement> * Block<'Content,'Label,'VarsContainer,'CustomStatement>
+    | ChangeVars of ('VarsContainer -> 'VarsContainer)
     | Addon of 'CustomStatement
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module Choice =
-    let mapLabel blockMapLabel labelMapping ((description, body): Choice<_, 'OldLabel, _>) : Choice<_, 'NewLabel, _> =
+    let mapLabel blockMapLabel labelMapping ((description, body): Choice<'C,'OldLabel,'V,'CS>) : Choice<'C,'NewLabel,'V,'CS> =
         description, blockMapLabel labelMapping body
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module Choices =
-    let mapLabel blockMapLabel labelMapping (choices: Choices<_, 'OldLabel, _>) : Choices<_, 'NewLabel, _> =
+    let mapLabel blockMapLabel labelMapping (choices: Choices<'C,'OldLabel,'V,'CS>) : Choices<'C,'NewLabel,'V,'CS> =
         choices
         |> List.map (Choice.mapLabel blockMapLabel labelMapping)
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module Stmt =
-    let equals customEquals (leftStatement: Stmt<'Content, 'Label, 'CustomStatement>) (rightStatement: Stmt<'Content, 'Label, 'CustomStatement>) =
+    let equals customEquals (leftStatement: Stmt<'Content,'Label,'VarsContainer,'CustomStatement>) (rightStatement: Stmt<'Content,'Label,'VarsContainer,'CustomStatement>) =
         let rec f x =
-            let blockEquals (l: Block<'Content, 'Label, 'CustomStatement>) (r: Block<'Content, 'Label, 'CustomStatement>) =
+            let blockEquals (l: Block<'Content,'Label,'VarsContainer,'CustomStatement>) (r: Block<'Content,'Label,'VarsContainer,'CustomStatement>) =
                 l.Length = r.Length
                 && List.forall2 (fun l r -> f (l, r)) l r
 
@@ -40,10 +40,10 @@ module Stmt =
             | Jump l, Jump r ->
                 l = r
             | Menu(lDesc, lChoices), Menu(rDesc, rChoices) ->
-                let choicesEquals (l: Choices<'Content, 'Label, 'CustomStatement>) (r: Choices<'Content, 'Label, 'CustomStatement>) =
+                let choicesEquals (l: Choices<'Content,'Label,'VarsContainer,'CustomStatement>) (r: Choices<'Content,'Label,'VarsContainer,'CustomStatement>) =
                     l.Length = r.Length
                     && List.forall2
-                        (fun ((lDesc, lBlock): Choice<'Content, 'Label, 'CustomStatement>) ((rDesc, rBlock): Choice<'Content, 'Label, 'CustomStatement>) ->
+                        (fun ((lDesc, lBlock): Choice<'Content,'Label,'VarsContainer,'CustomStatement>) ((rDesc, rBlock): Choice<'Content,'Label,'VarsContainer,'CustomStatement>) ->
                             lDesc = rDesc
                             && blockEquals lBlock rBlock
                         )
@@ -65,7 +65,7 @@ module Stmt =
 
         f (leftStatement, rightStatement)
 
-    let mapLabel blockMapLabel labelMapping (statement: Stmt<_, 'OldLabel, _>) : Stmt<_, 'NewLabel, _> =
+    let mapLabel blockMapLabel labelMapping (statement: Stmt<'C,'OldLabel,'V,'CS>) : Stmt<'C,'NewLabel,'V,'CS> =
         match statement with
         | Stmt.Say content ->
             Stmt.Say content
@@ -85,28 +85,28 @@ module Stmt =
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module Block =
-    let rec mapLabel labelMapping (block: Block<_, 'OldLabel, _>) : Block<_, 'NewLabel, _> =
+    let rec mapLabel labelMapping (block: Block<_,'OldLabel,_,_>) : Block<_,'NewLabel,_,_> =
         block
         |> List.map (Stmt.mapLabel mapLabel labelMapping)
 
-type NamedBlock<'Content, 'Label, 'CustomStatement> = 'Label * Block<'Content, 'Label, 'CustomStatement>
+type NamedBlock<'Content,'Label,'VarsContainer,'CustomStatement> = 'Label * Block<'Content,'Label,'VarsContainer,'CustomStatement>
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module NamedBlock =
-    let mapLabel labelMapping ((label, block): NamedBlock<_, 'OldLabel, _>) : NamedBlock<_, 'NewLabel, _> =
+    let mapLabel labelMapping ((label, block): NamedBlock<_,'OldLabel,_,_>) : NamedBlock<_,'NewLabel,_,_> =
         let label = labelMapping label
         label, Block.mapLabel labelMapping block
 
-type Scenario<'Content, 'Label, 'CustomStatement> when 'Label : comparison =
-    Map<'Label, NamedBlock<'Content, 'Label, 'CustomStatement>>
+type Scenario<'Content,'Label,'VarsContainer,'CustomStatement> when 'Label : comparison =
+    Map<'Label, NamedBlock<'Content,'Label,'VarsContainer,'CustomStatement>>
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module Scenario =
-    let empty : Scenario<'Content,'Label,'CustomStatement> = Map.empty
+    let empty : Scenario<'Content,'Label,'VarsContainer,'CustomStatement> = Map.empty
 
-    let mapLabel labelMapping (scenario: Scenario<_, 'OldLabel, _>) : Scenario<_, 'NewLabel,  _> =
+    let mapLabel labelMapping (scenario: Scenario<_,'OldLabel,_,_>) : Scenario<_,'NewLabel,_,_> =
         scenario
         |> Seq.fold
             (fun st (KeyValue(k, v)) ->
@@ -116,11 +116,11 @@ module Scenario =
             )
             Map.empty
 
-    let toNamedBlockSeq (scenario: Scenario<_, _, _>) : seq<NamedBlock<'a,'b,'c>> =
+    let toNamedBlockSeq (scenario: Scenario<_,_,_,_>) : seq<NamedBlock<_,_,_,_>> =
         scenario
         |> Seq.map (fun x -> x.Value)
 
-    let ofNamedBlockList (namedBlocks: NamedBlock<_,_,_> list) : Scenario<'Content,'Label,'CustomStatement> =
+    let ofNamedBlockList (namedBlocks: NamedBlock<_,_,_,_> list) : Scenario<'Content,'Label,'VarsContainer,'CustomStatement> =
         namedBlocks
         |> List.map (fun (labelName, body) -> labelName, (labelName, body))
         |> Map.ofList

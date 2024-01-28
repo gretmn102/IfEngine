@@ -20,18 +20,18 @@ type NarratorCommonContent =
 module NarratorCommonContent =
     val create: narrator: Narrator option -> content: CommonContent.Content -> NarratorCommonContent
 
-    val createSay: content: CommonContent.Content -> Stmt<NarratorCommonContent, 'Label, 'CustomStatement>
+    val createSay: content: CommonContent.Content -> Stmt<NarratorCommonContent, 'L, 'V, 'CS>
 
     val createNarratorSay:
-        narrator: Narrator -> content: CommonContent.Content -> Stmt<NarratorCommonContent, 'Label, 'CustomStatement>
+        narrator: Narrator -> content: CommonContent.Content -> Stmt<NarratorCommonContent, 'L, 'V, 'CS>
 
     val createMenu:
         caption: CommonContent.Content ->
-        choices: Choices<NarratorCommonContent, 'Label, 'CustomStatement> ->
-            Stmt<NarratorCommonContent, 'Label, 'CustomStatement>
+        choices: Choices<NarratorCommonContent, 'L, 'V, 'CS> ->
+            Stmt<NarratorCommonContent, 'L, 'V, 'CS>
 
     val createNarratorMenu:
         narrator: Narrator ->
         caption: CommonContent.Content ->
-        choices: Choices<NarratorCommonContent, 'Label, 'CustomStatement> ->
-            Stmt<NarratorCommonContent, 'Label, 'CustomStatement>
+        choices: Choices<NarratorCommonContent, 'L, 'V, 'CS> ->
+            Stmt<NarratorCommonContent, 'L, 'V, 'CS>

@@ -28,19 +28,19 @@ module NarratorCommonContent =
             Content = content
         }
 
-    let createSay content : Stmt<NarratorCommonContent, 'Label, 'CustomStatement> =
+    let createSay content : Stmt<NarratorCommonContent, 'Label, 'V, 'CustomStatement> =
         Say (create None content)
 
-    let createNarratorSay narrator content : Stmt<NarratorCommonContent, 'Label, 'CustomStatement> =
+    let createNarratorSay narrator content : Stmt<NarratorCommonContent, 'L, 'V, 'CS> =
         Say (create (Some narrator) content)
 
-    let createMenu caption choices : Stmt<NarratorCommonContent, 'Label, 'CustomStatement> =
+    let createMenu caption choices : Stmt<NarratorCommonContent, 'L, 'V, 'CS> =
         Menu(
             create None caption,
             choices
         )
 
-    let createNarratorMenu narrator caption choices : Stmt<NarratorCommonContent, 'Label, 'CustomStatement> =
+    let createNarratorMenu narrator caption choices : Stmt<NarratorCommonContent, 'L, 'V, 'CS> =
         Menu(
             (create
                 (Some narrator)
