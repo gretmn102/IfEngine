@@ -1,3 +1,7 @@
+## 2.0.0-prerelease.4
+* feat: add `Var.Custom`
+* breaking: generalize `VarsContainer` in all types
+
 ## 2.0.0-prerelease.3
 * feat: add `Scenario.ofNamedBlockList`
 * feat: add `Scenario.empty`
