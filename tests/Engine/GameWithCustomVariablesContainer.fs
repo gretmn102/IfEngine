@@ -30,8 +30,8 @@ type PersonVar(varName: string) =
         member __.Get (varsContainer: VarsContainer) =
             match Map.tryFind varName varsContainer with
             | Some(Var.Custom x) -> x
-            | _ ->
-                failwithf "expected Some(Var.Custom x) but %s" varName
+            | x ->
+                failwithf "expected %s = Some(Var.Custom x) but %A" varName x
 
         member __.Set newValue (varsContainer: VarsContainer) =
             Map.add varName (Var.Custom newValue) varsContainer
@@ -45,9 +45,7 @@ type PersonVar(varName: string) =
 module VarsContainer =
     let createPerson str = new PersonVar(str)
 
-let applesCount = VarsContainer.createNum "apples"
-let isApplesOnRightRoad = VarsContainer.createBool "isApplesOnRightRoad"
-let human = VarsContainer.createPerson "human"
+let jack = VarsContainer.createPerson "jack"
 
 type CustomStatement = unit
 
@@ -62,57 +60,16 @@ let beginLoc = VariablesDefinition
 let scenario : Scenario<string,LabelName,VarsContainer,unit> =
     [
         label VariablesDefinition [
-            human := { Name = "Human"; Weapon = "Spear" }
-            jump Crossroad
-        ]
-
-        label Crossroad [
-            menu "Ты стоишь на развилке в лесу." [
-                choice "пойти влево" [ jump LeftRoad ]
-                choice "пойти вправо" [ jump RightRoad ]
-            ]
-        ]
-
-        label LeftRoad [
-            if' (fun vars ->
-                Var.get applesCount vars > 0
-            ) [
-                update human (fun human -> { human with Weapon = "Axe" })
-                menu "По левой дороге ты встречаешь ежика. Ежик голоден и хочет поесть." [
-                    choice "Покормить" [
-                        update applesCount (fun count -> count - 1)
-                        say "Ты покормил ёжика"
-                    ]
-                    choice "Вернуться на развилку" [ jump Crossroad ]
-                ]
-            ] [
-                menu "По левой дороге ты встречаешь ежика. Ежик голоден и хочет поесть." [
-                    choice "Вернуться" [ jump Crossroad ]
-                ]
-            ]
-        ]
-
-        label RightRoad [
-            if' (Var.get isApplesOnRightRoad) [
-                menu "По правой дороге ты находишь яблоко." [
-                    choice "Поднять" [
-                        isApplesOnRightRoad := false
-                        update applesCount ((+) 1)
-
-                        interSay (fun vars ->
-                            Var.get applesCount vars
-                            |> sprintf "Теперь у тебя %d яблок."
-                        )
-
-                        jump RightRoad
-                    ]
-                    choice "Вернуться" [ jump Crossroad ]
-                ]
-            ] [
-                menu "По правой дороге больше ничего нет." [
-                    choice "Вернуться" [ jump Crossroad ]
-                ]
-            ]
+            jack := { Name = "Jack"; Weapon = "Spear" }
+            interSay (fun vars ->
+                let jack = Var.get jack vars
+                sprintf "His name is %s and he has %s." jack.Name jack.Weapon
+            )
+            update jack (fun jack -> { jack with Weapon = "Axe" })
+            interSay (fun vars ->
+                let jack = Var.get jack vars
+                sprintf "%s has %s." jack.Name jack.Weapon
+            )
         ]
     ]
     |> Scenario.ofNamedBlockList
@@ -131,56 +88,14 @@ let test =
                     initGameState
                 |> Result.get
 
-            let crossroad =
-                OutputMsg.Choices("Ты стоишь на развилке в лесу.", [
-                    "пойти влево"
-                    "пойти вправо"
-                ])
-            Assert.Equal("", crossroad, Engine.getCurrentOutputMsg engine)
-
-            let engine = Engine.update (InputMsg.Choice 0) engine |> Result.get
-            let leftRoadMenu =
-                OutputMsg.Choices("По левой дороге ты встречаешь ежика. Ежик голоден и хочет поесть.", [
-                    "Вернуться"
-                ])
-            Assert.Equal("", leftRoadMenu, Engine.getCurrentOutputMsg engine)
-
-            let engine = Engine.update (InputMsg.Choice 0) engine |> Result.get
-            Assert.Equal("", crossroad, Engine.getCurrentOutputMsg engine)
-
-            let engine = Engine.update (InputMsg.Choice 1) engine |> Result.get
-            let menu =
-                OutputMsg.Choices("По правой дороге ты находишь яблоко.", [
-                    "Поднять"
-                    "Вернуться"
-                ])
-            Assert.Equal("", menu, Engine.getCurrentOutputMsg engine)
-
-            let engine = Engine.update (InputMsg.Choice 0) engine |> Result.get
             let outputMsg =
-                OutputMsg.Print "Теперь у тебя 1 яблок."
+                OutputMsg.Print "His name is Jack and he has Spear."
             Assert.Equal("", outputMsg, Engine.getCurrentOutputMsg engine)
 
             let engine = Engine.update InputMsg.Next engine |> Result.get
-            let menu =
-                OutputMsg.Choices("По правой дороге больше ничего нет.", [
-                    "Вернуться"
-                ])
-            Assert.Equal("", menu, Engine.getCurrentOutputMsg engine)
-
-            let engine = Engine.update (InputMsg.Choice 0) engine |> Result.get
-            Assert.Equal("", crossroad, Engine.getCurrentOutputMsg engine)
-
-            let engine = Engine.update (InputMsg.Choice 0) engine |> Result.get
-            let rightRoadMenu =
-                OutputMsg.Choices("По левой дороге ты встречаешь ежика. Ежик голоден и хочет поесть.", [
-                    "Покормить"
-                    "Вернуться на развилку"
-                ])
-            Assert.Equal("", rightRoadMenu, Engine.getCurrentOutputMsg engine)
-
-            let engine = Engine.update (InputMsg.Choice 0) engine |> Result.get
-            Assert.Equal("", OutputMsg.Print("Ты покормил ёжика"), Engine.getCurrentOutputMsg engine)
+            let outputMsg =
+                OutputMsg.Print "Jack has Axe."
+            Assert.Equal("", outputMsg, Engine.getCurrentOutputMsg engine)
 
             let engine = Engine.update InputMsg.Next engine |> Result.get
             Assert.Equal("", OutputMsg.End, Engine.getCurrentOutputMsg engine)
