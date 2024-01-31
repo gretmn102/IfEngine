@@ -42,8 +42,8 @@ type NumVar<'Custom>(varName: string) =
         member __.Get varsContainer =
             match Map.tryFind varName varsContainer with
             | Some(Var.Num x) -> x
-            | _ ->
-                failwithf "expected Some(Num x) but %s" varName
+            | x ->
+                failwithf "expected %s = Some(Num x) but %A" varName x
 
         member __.Set newValue varsContainer =
             Map.add varName (Var.Num newValue) varsContainer
@@ -64,8 +64,8 @@ type StringVar<'Custom>(varName: string) =
         member __.Get varsContainer =
             match Map.tryFind varName varsContainer with
             | Some(Var.String x) -> x
-            | _ ->
-                failwithf "expected Some(String x) but %s" varName
+            | x ->
+                failwithf "expected %s = Some(String x) but %A" varName x
 
         member __.Set newValue varsContainer =
             Map.add varName (Var.String newValue) varsContainer
@@ -86,8 +86,8 @@ type BoolVar<'Custom>(varName: string) =
         member __.Get varsContainer =
             match Map.tryFind varName varsContainer with
             | Some(Var.Bool x) -> x
-            | _ ->
-                failwithf "expected Some(Bool x) but %s" varName
+            | x ->
+                failwithf "expected %s = Some(Bool x) but %A" varName x
 
         member __.Set newValue varsContainer =
             Map.add varName (Var.Bool newValue) varsContainer
@@ -112,8 +112,8 @@ type EnumVar<'Custom, 'T when 'T: enum<int32>>(varName: string)  =
 
             match Map.tryFind varName varsContainer with
             | Some(Var.Num x) -> enum x
-            | _ ->
-                failwithf "expected Some(Bool x) but %s" varName
+            | x ->
+                failwithf "expected %s = Some(Bool x) but %A" varName x
 
         member __.GetVarName() =
             varName
