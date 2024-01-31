@@ -111,18 +111,14 @@ let scenario : Scenario<_, _, _> =
                     fight
                         { EnemyName = "Олень"; EnemyStrength = strength }
                         [
-                            interSay (fun vars ->
+                            imenu (fun vars ->
                                 [
                                     p [
                                         [ text "Ты победил оленя!" ]
                                         [ text "У тебя осталось "; bold (text (sprintf "%dHP" (Var.get health vars))) ]
                                     ]
                                 ]
-                            )
-
-                            menu [
-                                p [[ text "Что делаем дальше?" ]]
-                            ] [
+                            ) [
                                 choice "Вернуться на развилку" [ jump Crossroad ]
                             ]
                         ]

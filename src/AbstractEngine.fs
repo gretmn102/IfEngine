@@ -120,6 +120,13 @@ module AbstractEngine =
                             stepInto i body
                         )
 
+                    | InterpolatedMenu(getContent, xs) ->
+                        let labels = xs |> List.map fst
+                        AbstractEngine.Choices(getContent state.Vars, labels, fun i ->
+                            let _, body = xs.[i]
+                            stepInto i body
+                        )
+
                     | If(pred, thenBody, elseBody) ->
                         if pred state.Vars then
                             stepInto 0 thenBody

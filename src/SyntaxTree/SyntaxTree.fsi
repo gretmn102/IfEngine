@@ -14,6 +14,7 @@ and Stmt<'Content, 'Label, 'VarsContainer, 'CustomStatement> =
     | InterpolationSay of ('VarsContainer -> 'Content)
     | Jump of 'Label
     | Menu of 'Content * Choices<'Content, 'Label, 'VarsContainer, 'CustomStatement>
+    | InterpolatedMenu  of ('VarsContainer -> 'Content) * Choices<'Content,'Label,'VarsContainer,'CustomStatement>
     | If of
         ('VarsContainer -> bool) *
         Block<'Content, 'Label, 'VarsContainer, 'CustomStatement> *

@@ -12,6 +12,8 @@ let choice (caption: string) (body: Stmt<'Content,'Label,'VarsContainer,'CustomS
 
 let menu caption xs = Menu(caption, xs)
 
+let imenu getContent xs = InterpolatedMenu(getContent, xs)
+
 let if' pred thenBody elseBody =
     If(pred, thenBody, elseBody)
 

@@ -18,6 +18,11 @@ val menu:
     xs: Choices<'C,'L,'V,'CS> ->
         Stmt<'C,'L,'V,'CS>
 
+val imenu:
+    getContent: ('V -> 'C) ->
+    xs: Choices<'C,'L,'V,'CS> ->
+        Stmt<'C,'L,'V,'CS>
+
 val if':
     pred: ('V -> bool) ->
     thenBody: Block<'C,'L,'V,'CS> ->

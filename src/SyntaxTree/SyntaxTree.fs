@@ -8,6 +8,7 @@ and Stmt<'Content,'Label,'VarsContainer,'CustomStatement> =
     | InterpolationSay of ('VarsContainer -> 'Content)
     | Jump of 'Label
     | Menu of 'Content * Choices<'Content,'Label,'VarsContainer,'CustomStatement>
+    | InterpolatedMenu  of ('VarsContainer -> 'Content) * Choices<'Content,'Label,'VarsContainer,'CustomStatement>
     | If of ('VarsContainer -> bool) * Block<'Content,'Label,'VarsContainer,'CustomStatement> * Block<'Content,'Label,'VarsContainer,'CustomStatement>
     | ChangeVars of ('VarsContainer -> 'VarsContainer)
     | Addon of 'CustomStatement
@@ -75,6 +76,8 @@ module Stmt =
             Stmt.Jump (labelMapping label)
         | Stmt.Menu(content, choices) ->
             Stmt.Menu(content, Choices.mapLabel blockMapLabel labelMapping choices)
+        | Stmt.InterpolatedMenu(getContent, choices) ->
+            Stmt.InterpolatedMenu(getContent, Choices.mapLabel blockMapLabel labelMapping choices)
         | Stmt.If(condition, thenBody, elseBody) ->
             Stmt.If(condition, blockMapLabel labelMapping thenBody, blockMapLabel labelMapping elseBody)
         | Stmt.ChangeVars updateVarContainer ->
