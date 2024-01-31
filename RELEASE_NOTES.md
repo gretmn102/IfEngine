@@ -1,3 +1,8 @@
+## 2.0.0-prerelease.5
+* (breaking) feat: add predication in `Choice`
+* (breaking) feat: add interpolated menu
+* improve errors in vars
+
 ## 2.0.0-prerelease.4
 * feat: add `Var.Custom`
 * breaking: generalize `VarsContainer` in all types
