@@ -13,6 +13,12 @@ val choice:
     body: Stmt<'C,'L,'V,'CS> list ->
         Choice<'C,'L,'V,'CS>
 
+val pchoice:
+    predicate: ('V -> bool) ->
+    caption: string ->
+    body: Stmt<'C,'L,'V,'CS> list ->
+        Choice<'C,'L,'V,'CS>
+
 val menu:
     caption: 'C ->
     xs: Choices<'C,'L,'V,'CS> ->

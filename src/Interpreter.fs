@@ -46,7 +46,7 @@ module BlockStack =
                     match block.[index] with
                     | Menu(_, blocks) ->
                         if subIndex < blocks.Length then
-                            Ok (snd blocks.[subIndex])
+                            Ok (blocks.[subIndex].Body)
                         else
                             Error "subIndex < blocks.Length"
                     | If(_, firstBlock, secondBlock) ->

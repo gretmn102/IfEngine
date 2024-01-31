@@ -1,8 +1,18 @@
 namespace IfEngine.SyntaxTree
 
-type Block<'Content,'Label,'VarsContainer,'CustomStatement> = Stmt<'Content,'Label,'VarsContainer,'CustomStatement> list
-and Choice<'Content,'Label,'VarsContainer,'CustomStatement> = string * Block<'Content,'Label,'VarsContainer,'CustomStatement>
-and Choices<'Content,'Label,'VarsContainer,'CustomStatement> = Choice<'Content,'Label,'VarsContainer,'CustomStatement> list
+type Block<'Content,'Label,'VarsContainer,'CustomStatement> =
+    Stmt<'Content,'Label,'VarsContainer,'CustomStatement> list
+
+and Choice<'Content,'Label,'VarsContainer,'CustomStatement> =
+    {
+        Predicate: ('VarsContainer -> bool) option
+        Caption: string
+        Body: Block<'Content, 'Label, 'VarsContainer, 'CustomStatement>
+    }
+
+and Choices<'Content,'Label,'VarsContainer,'CustomStatement> =
+    Choice<'Content,'Label,'VarsContainer,'CustomStatement> list
+
 and Stmt<'Content,'Label,'VarsContainer,'CustomStatement> =
     | Say of 'Content
     | InterpolationSay of ('VarsContainer -> 'Content)
@@ -16,8 +26,12 @@ and Stmt<'Content,'Label,'VarsContainer,'CustomStatement> =
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module Choice =
-    let mapLabel blockMapLabel labelMapping ((description, body): Choice<'C,'OldLabel,'V,'CS>) : Choice<'C,'NewLabel,'V,'CS> =
-        description, blockMapLabel labelMapping body
+    let mapLabel blockMapLabel labelMapping (choice: Choice<'C,'OldLabel,'V,'CS>) : Choice<'C,'NewLabel,'V,'CS> =
+        {
+            Predicate = choice.Predicate
+            Caption = choice.Caption
+            Body = blockMapLabel labelMapping choice.Body
+        }
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
@@ -44,9 +58,15 @@ module Stmt =
                 let choicesEquals (l: Choices<'Content,'Label,'VarsContainer,'CustomStatement>) (r: Choices<'Content,'Label,'VarsContainer,'CustomStatement>) =
                     l.Length = r.Length
                     && List.forall2
-                        (fun ((lDesc, lBlock): Choice<'Content,'Label,'VarsContainer,'CustomStatement>) ((rDesc, rBlock): Choice<'Content,'Label,'VarsContainer,'CustomStatement>) ->
-                            lDesc = rDesc
-                            && blockEquals lBlock rBlock
+                        (fun ((lChoice): Choice<'Content,'Label,'VarsContainer,'CustomStatement>) (rChoice: Choice<'Content,'Label,'VarsContainer,'CustomStatement>) ->
+                            let predicateEquals = function
+                                | Some _, Some _
+                                | None, None -> true
+                                | _ -> false
+
+                            predicateEquals (lChoice.Predicate, rChoice.Predicate)
+                            && lChoice.Caption = rChoice.Caption
+                            && blockEquals lChoice.Body rChoice.Body
                         )
                         l
                         r

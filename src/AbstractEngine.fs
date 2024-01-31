@@ -5,7 +5,7 @@ open FsharpMyExtension.ResultExt
 [<RequireQualifiedAccess>]
 type AbstractEngine<'Content, 'Label, 'VarsContainer, 'CustomStatement, 'Arg> =
     | Print of 'Content * (unit -> AbstractEngine<'Content, 'Label, 'VarsContainer, 'CustomStatement, 'Arg>)
-    | Choices of 'Content * string list * (int -> AbstractEngine<'Content, 'Label, 'VarsContainer, 'CustomStatement, 'Arg>)
+    | Choices of 'Content * (int * string) list * (int -> AbstractEngine<'Content, 'Label, 'VarsContainer, 'CustomStatement, 'Arg>)
     | End
     | AddonAct of 'CustomStatement * ('Arg -> AbstractEngine<'Content, 'Label, 'VarsContainer, 'CustomStatement, 'Arg>)
     | NextState of State<'Content, 'Label, 'VarsContainer> * (unit -> AbstractEngine<'Content, 'Label, 'VarsContainer, 'CustomStatement, 'Arg>)
@@ -94,6 +94,32 @@ module AbstractEngine =
                         sprintf "First element in stack must be SimpleStatement"
                         |> Error
 
+                let menu content (choices: Choices<'C,'L,'V,'CS>) =
+                    let labels =
+                        List.fold
+                            (fun (i, labels) (choice: Choice<'C,'L,'V,'CS>) ->
+                                let add () =
+                                    i + 1, (i, choice.Caption)::labels
+                                match choice.Predicate with
+                                | None ->
+                                    add ()
+                                | Some predicate ->
+                                    if predicate state.Vars then
+                                        add ()
+                                    else
+                                        (i + 1, labels)
+                            )
+                            (0, [])
+                            choices
+                        |> fun (_, labels) ->
+                            List.rev labels
+
+                    AbstractEngine.Choices(content, labels, fun i ->
+                        let body = choices[i].Body
+                        let result = stepInto i body
+                        result
+                    )
+
                 match currentStatement with
                 | Ok currentStatement ->
                     match currentStatement with
@@ -113,19 +139,11 @@ module AbstractEngine =
                             loop state
                         )
 
-                    | Menu(caption, xs) ->
-                        let labels = xs |> List.map fst
-                        AbstractEngine.Choices(caption, labels, fun i ->
-                            let _, body = xs.[i]
-                            stepInto i body
-                        )
+                    | Menu(caption, choices) ->
+                        menu caption choices
 
-                    | InterpolatedMenu(getContent, xs) ->
-                        let labels = xs |> List.map fst
-                        AbstractEngine.Choices(getContent state.Vars, labels, fun i ->
-                            let _, body = xs.[i]
-                            stepInto i body
-                        )
+                    | InterpolatedMenu(getContent, choices) ->
+                        menu (getContent state.Vars) choices
 
                     | If(pred, thenBody, elseBody) ->
                         if pred state.Vars then

@@ -176,16 +176,16 @@ let tests =
 
             let exp =
                 [ p [[ text "Ты стоишь на развилке двух дорог." ]] ], [
-                    "пойти в злой лес"
-                    "Пойти на болото"
+                    0, "пойти в злой лес"
+                    1, "Пойти на болото"
                 ]
             equalMenu exp (Engine.getCurrentOutputMsg engine)
 
             let engine = Engine.update (InputMsg.Choice 0) engine |> Result.get // в злой лес
             let exp =
                 [ p [[ text "В лесу ты встречаешь крокодила." ]] ], [
-                    "Атаковать"
-                    "Сбежать на развилку"
+                    0, "Атаковать"
+                    1, "Сбежать на развилку"
                 ]
             equalMenu exp (Engine.getCurrentOutputMsg engine)
 
@@ -235,7 +235,7 @@ let tests =
                     engine |> Result.get
             let exp =
                 [ p [[text "Что делаем дальше?"]] ], [
-                    "Вернуться на развилку"
+                    0, "Вернуться на развилку"
                 ]
             Engine.getCurrentOutputMsg engine
             |> equalMenu exp

@@ -11,7 +11,7 @@ type CustomStatementTransformer<'CustomStatementInput, 'CustomStatementOutput> =
 [<RequireQualifiedAccess>]
 type OutputMsg<'Content, 'CustomStatement> =
     | Print of 'Content
-    | Choices of 'Content * string list
+    | Choices of 'Content * (int * string) list
     | End
     | CustomStatement of 'CustomStatement
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]

@@ -4,7 +4,7 @@ open IfEngine.SyntaxTree
 [<RequireQualifiedAccess>]
 type AbstractEngine<'Content, 'Label, 'VarsContainer, 'CustomStatement, 'Arg> =
     | Print of 'Content * (unit -> AbstractEngine<'Content, 'Label, 'VarsContainer, 'CustomStatement, 'Arg>)
-    | Choices of 'Content * string list * (int -> AbstractEngine<'Content, 'Label, 'VarsContainer, 'CustomStatement, 'Arg>)
+    | Choices of 'Content * (int * string) list * (int -> AbstractEngine<'Content, 'Label, 'VarsContainer, 'CustomStatement, 'Arg>)
     | End
     | AddonAct of 'CustomStatement * ('Arg -> AbstractEngine<'Content, 'Label, 'VarsContainer, 'CustomStatement, 'Arg>)
     | NextState of State<'Content, 'Label, 'VarsContainer> * (unit -> AbstractEngine<'Content, 'Label, 'VarsContainer, 'CustomStatement, 'Arg>)

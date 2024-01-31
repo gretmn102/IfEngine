@@ -4,7 +4,11 @@ type Block<'Content, 'Label, 'VarsContainer, 'CustomStatement> =
     Stmt<'Content, 'Label, 'VarsContainer, 'CustomStatement> list
 
 and Choice<'Content, 'Label, 'VarsContainer, 'CustomStatement> =
-    string * Block<'Content, 'Label, 'VarsContainer, 'CustomStatement>
+    {
+        Predicate: ('VarsContainer -> bool) option
+        Caption: string
+        Body: Block<'Content, 'Label, 'VarsContainer, 'CustomStatement>
+    }
 
 and Choices<'Content, 'Label, 'VarsContainer, 'CustomStatement> =
     Choice<'Content, 'Label, 'VarsContainer, 'CustomStatement> list

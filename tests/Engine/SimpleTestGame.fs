@@ -38,20 +38,15 @@ let scenario : Scenario<string,LabelName,VarsContainer,unit> =
         ]
 
         label LeftRoad [
-            if' (fun vars ->
+            let hasApples vars =
                 Var.get applesCount vars > 0
-            ) [
-                menu "По левой дороге ты встречаешь ежика. Ежик голоден и хочет поесть." [
-                    choice "Покормить" [
-                        update applesCount (fun count -> count - 1)
-                        say "Ты покормил ёжика"
-                    ]
-                    choice "Вернуться на развилку" [ jump Crossroad ]
+
+            menu "По левой дороге ты встречаешь ежика. Ежик голоден и хочет поесть." [
+                pchoice hasApples "Покормить" [
+                    update applesCount (fun count -> count - 1)
+                    say "Ты покормил ёжика"
                 ]
-            ] [
-                menu "По левой дороге ты встречаешь ежика. Ежик голоден и хочет поесть." [
-                    choice "Вернуться" [ jump Crossroad ]
-                ]
+                choice "Вернуться" [ jump Crossroad ]
             ]
         ]
 
@@ -96,26 +91,26 @@ let test =
 
             let crossroad =
                 OutputMsg.Choices("Ты стоишь на развилке в лесу.", [
-                    "пойти влево"
-                    "пойти вправо"
+                    0, "пойти влево"
+                    1, "пойти вправо"
                 ])
             Assert.Equal("", crossroad, Engine.getCurrentOutputMsg engine)
 
             let engine = Engine.update (InputMsg.Choice 0) engine |> Result.get
             let leftRoadMenu =
                 OutputMsg.Choices("По левой дороге ты встречаешь ежика. Ежик голоден и хочет поесть.", [
-                    "Вернуться"
+                    1, "Вернуться"
                 ])
             Assert.Equal("", leftRoadMenu, Engine.getCurrentOutputMsg engine)
 
-            let engine = Engine.update (InputMsg.Choice 0) engine |> Result.get
+            let engine = Engine.update (InputMsg.Choice 1) engine |> Result.get
             Assert.Equal("", crossroad, Engine.getCurrentOutputMsg engine)
 
             let engine = Engine.update (InputMsg.Choice 1) engine |> Result.get
             let menu =
                 OutputMsg.Choices("По правой дороге ты находишь яблоко.", [
-                    "Поднять"
-                    "Вернуться"
+                    0, "Поднять"
+                    1, "Вернуться"
                 ])
             Assert.Equal("", menu, Engine.getCurrentOutputMsg engine)
 
@@ -127,7 +122,7 @@ let test =
             let engine = Engine.update InputMsg.Next engine |> Result.get
             let menu =
                 OutputMsg.Choices("По правой дороге больше ничего нет.", [
-                    "Вернуться"
+                    0, "Вернуться"
                 ])
             Assert.Equal("", menu, Engine.getCurrentOutputMsg engine)
 
@@ -137,8 +132,8 @@ let test =
             let engine = Engine.update (InputMsg.Choice 0) engine |> Result.get
             let rightRoadMenu =
                 OutputMsg.Choices("По левой дороге ты встречаешь ежика. Ежик голоден и хочет поесть.", [
-                    "Покормить"
-                    "Вернуться на развилку"
+                    0, "Покормить"
+                    1, "Вернуться"
                 ])
             Assert.Equal("", rightRoadMenu, Engine.getCurrentOutputMsg engine)
 

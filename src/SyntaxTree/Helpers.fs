@@ -8,7 +8,19 @@ let label (labelName: 'Label) (stmts: Stmt<'Content,'Label,'VarsContainer,'Custo
 let jump (labelName: 'Label) =
     Jump labelName
 
-let choice (caption: string) (body: Stmt<'Content,'Label,'VarsContainer,'CustomStatement> list) = caption, body
+let choice (caption: string) (body: Stmt<'Content,'Label,'VarsContainer,'CustomStatement> list) =
+    {
+        Predicate = None
+        Caption = caption
+        Body = body
+    }
+
+let pchoice predicate (caption: string) (body: Stmt<'Content,'Label,'VarsContainer,'CustomStatement> list) =
+    {
+        Predicate = Some predicate
+        Caption = caption
+        Body = body
+    }
 
 let menu caption xs = Menu(caption, xs)
 
