@@ -1,3 +1,6 @@
+## 2.0.0-prerelease.5.1
+* fix: interpolated menu
+
 ## 2.0.0-prerelease.5
 * (breaking) feat: add predication in `Choice`
 * (breaking) feat: add interpolated menu
