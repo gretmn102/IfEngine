@@ -44,7 +44,8 @@ module BlockStack =
             | StatementIndexInBlock.BlockStatement(index, subIndex) ->
                 if index < block.Length then
                     match block.[index] with
-                    | Menu(_, blocks) ->
+                    | Menu(_, blocks)
+                    | InterpolatedMenu(_, blocks) ->
                         if subIndex < blocks.Length then
                             Ok (blocks.[subIndex].Body)
                         else

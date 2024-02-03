@@ -31,7 +31,7 @@ let scenario : Scenario<string,LabelName,VarsContainer,unit> =
         ]
 
         label Crossroad [
-            menu "Ты стоишь на развилке в лесу." [
+            imenu (fun _ -> "Ты стоишь на развилке в лесу.") [
                 choice "пойти влево" [ jump LeftRoad ]
                 choice "пойти вправо" [ jump RightRoad ]
             ]
